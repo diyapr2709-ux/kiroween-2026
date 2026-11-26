@@ -111,6 +111,32 @@ def cmd_eval(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_train(args: argparse.Namespace) -> int:
+    from .trace import save_model, train_full
+    deck = Deck.load(args.deck)
+    p = train_full(deck, mode=args.mode, seed=args.seed, epochs=args.epochs, hops=args.hops)
+    save_model(p, args.out)
+    print(f"trained policy_{args.mode} on {len(deck)} cards ({args.epochs} epochs, seed {args.seed}) -> {args.out}")
+    return 0
+
+
+def cmd_ask(args: argparse.Namespace) -> int:
+    from .trace import ask, load_model
+    deck = Deck.load(args.deck)
+    policy = load_model(args.model, deck) if Path(args.model).exists() else None
+    pulled = [int(x) for x in args.pull.split(",") if x] if args.pull else []
+    t = ask(args.question, deck, policy, pulled=pulled)
+    if args.json:
+        print(t.to_json())
+    else:
+        print(f"Q: {t.question}")
+        print(f"   parsed: {t.entity} / {t.relation}   status: {t.status}" + (f"   confidence: {t.confidence:.2f}" if t.confidence is not None else ""))
+        for c in t.path:
+            print(f"   {c['line']}")
+        print(t.narration)
+    return 0 if t.status == "answered" else 1
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(prog="hollerith", description="Hollerith's Ghost card tools")
     sub = ap.add_subparsers(dest="cmd", required=True)
@@ -163,6 +189,23 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--epochs", type=int, default=40)
     p.add_argument("--verbose", action="store_true")
     p.set_defaults(fn=cmd_eval)
+
+    p = sub.add_parser("train", help="train the product walker on the full deck and save it")
+    p.add_argument("--mode", choices=["rl", "sl"], default="sl")
+    p.add_argument("--deck", default=DEFAULT_DECK)
+    p.add_argument("--out", default="models/walker.npz")
+    p.add_argument("--seed", type=int, default=0)
+    p.add_argument("--epochs", type=int, default=40)
+    p.add_argument("--hops", type=int, default=4)
+    p.set_defaults(fn=cmd_train)
+
+    p = sub.add_parser("ask", help="answer a question from the cards; emits a trace")
+    p.add_argument("question")
+    p.add_argument("--deck", default=DEFAULT_DECK)
+    p.add_argument("--model", default="models/walker.npz")
+    p.add_argument("--pull", default="", help="comma-separated card sequence numbers to pull before walking")
+    p.add_argument("--json", action="store_true")
+    p.set_defaults(fn=cmd_ask)
 
     args = ap.parse_args(argv)
     try:

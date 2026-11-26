@@ -53,6 +53,9 @@ class Policy(Ranker):
         self.baseline_decay, self.verbose = baseline_decay, verbose
         self.name = f"policy_{mode}"
         self.history: list[dict] = []
+        # query relation -> set of relation chains that reached the gold answer during training.
+        # A product-side plausibility filter (trace.py), not part of the evaluation ranking.
+        self.known_chains: dict[str, set[tuple[str, ...]]] = {}
 
     # ---- parameters ------------------------------------------------------------------
     def _init(self, graph: Graph, all_entities: list[str], seed: int) -> None:
@@ -71,8 +74,13 @@ class Policy(Ranker):
         self.t_adam = 0
         self.baseline = 0.0
 
-    def _actions(self, e: str, masked: set[tuple[str, str, str]]) -> list[Fact | None]:
-        acts: list[Fact | None] = [f for f in self.g.edges(e) if f.triple() not in masked]
+    def _actions(self, e: str, masked: set[tuple[str, str, str]], visited: set[str] | None = None) -> list[Fact | None]:
+        """Cards leaving e that are not masked and do not revisit an entity on the walk, plus NO_OP.
+
+        Walks are simple paths: inverse cards would otherwise let the walker oscillate A->B->A.
+        """
+        visited = visited or set()
+        acts: list[Fact | None] = [f for f in self.g.edges(e) if f.triple() not in masked and f.object not in visited]
         acts.append(NOOP_FACT)
         return acts
 
@@ -127,9 +135,10 @@ class Policy(Ranker):
         e = s
         hist: list[int] = []
         steps = []
+        visited = {s}
         rq_i = self.ridx[rq]
         for _ in range(self.hops):
-            acts = self._actions(e, masked)
+            acts = self._actions(e, masked, visited)
             ri, ei = self._features(acts, e)
             q = self.R[rq_i] + (self.R[hist].mean(axis=0) if hist else 0.0)
             sc = self._scores(q, ri, ei)
@@ -144,6 +153,7 @@ class Policy(Ranker):
             if act is not None:
                 hist.append(self.ridx[act.relation])
                 e = act.object
+                visited.add(e)
         return steps, e
 
     def _masked(self, s: str, r: str, o: str) -> set[tuple[str, str, str]]:
@@ -171,6 +181,7 @@ class Policy(Ranker):
             path = _bfs_masked(self.g, s, o, self.hops, masked)
             if path:
                 demos.append((s, r, o, path))
+                self.known_chains.setdefault(r, set()).add(tuple(f.relation for f in path))
         self.n_demos = len(demos)
         for ep in range(self.epochs):
             order = self.rng.permutation(len(demos))
@@ -180,10 +191,11 @@ class Policy(Ranker):
                 s, r, o, path = demos[i]
                 masked = self._masked(s, r, o)
                 e, hist, steps = s, [], []
+                visited = {s}
                 rq_i = self.ridx[r]
                 targets = list(path) + [None] * (self.hops - len(path))
                 for tgt in targets:
-                    acts = self._actions(e, masked)
+                    acts = self._actions(e, masked, visited)
                     ri, ei = self._features(acts, e)
                     q = self.R[rq_i] + (self.R[hist].mean(axis=0) if hist else 0.0)
                     p = self._softmax(self._scores(q, ri, ei))
@@ -193,6 +205,7 @@ class Policy(Ranker):
                     if tgt is not None:
                         hist.append(self.ridx[tgt.relation])
                         e = tgt.object
+                        visited.add(e)
                 self._accumulate(gR, gE, steps, lambda p: (1.0, 0.0))
             n = max(1, len(demos))
             self._adam(gR / n, gE / n)
@@ -215,6 +228,10 @@ class Policy(Ranker):
                 for _ in range(self.rollouts):
                     steps, end = self._rollout(s, r, o, masked, train=True)
                     reward = 1.0 if end == o else 0.0
+                    if reward and ep >= self.epochs // 2:  # chains from the trained half of training
+                        chain = tuple(self.rels[st[1][st[4]]] for st in steps if st[1][st[4]] != self.ridx[NO_OP])
+                        if chain:
+                            self.known_chains.setdefault(r, set()).add(chain)
                     adv = reward - self.baseline
                     self.baseline = self.baseline_decay * self.baseline + (1 - self.baseline_decay) * reward
                     self._accumulate(gR, gE, steps, lambda p, adv=adv: (adv, self.entropy))
@@ -238,6 +255,10 @@ class Policy(Ranker):
                 n += 1
         return hits / n if n else 0.0
 
+    def chain_known(self, relation: str, chain: tuple[str, ...]) -> bool:
+        """True if this relation chain explained `relation` at least once during training."""
+        return tuple(chain) in self.known_chains.get(relation, set())
+
     # ---- decoding ----------------------------------------------------------------------
     def beam_search(self, s: str, rq: str, masked: set | None = None) -> list[tuple[str, float, list[Fact], list[float]]]:
         """Returns (entity, best log-prob, path, step probs) for every entity reached, best first."""
@@ -249,7 +270,8 @@ class Policy(Ranker):
         for _ in range(self.hops):
             cand = []
             for lp, e, hist, path, probs in beams:
-                acts = self._actions(e, masked)
+                visited = {s} | {f.object for f in path}
+                acts = self._actions(e, masked, visited)
                 ri, ei = self._features(acts, e)
                 q = self.R[rq_i] + (self.R[hist].mean(axis=0) if hist else 0.0)
                 p = self._softmax(self._scores(q, ri, ei))

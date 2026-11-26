@@ -56,8 +56,13 @@ def main() -> int:
         seqs = {c["seq"] for c in path}
         text = tr.get("narration", "").upper()
         problems = []
+        # Blank out on-path entity names (longest first) so that a city named inside a longer
+        # on-path entity ("MANCHESTER" in "MANCHESTER MARK 1") is not a false positive.
+        scrubbed = text
+        for e in sorted(on_path, key=len, reverse=True):
+            scrubbed = re.sub(r"(?<![A-Z0-9])" + re.escape(e) + r"(?![A-Z0-9])", " ", scrubbed)
         for e in sorted(vocab - on_path, key=len, reverse=True):
-            if re.search(r"(?<![A-Z0-9])" + re.escape(e) + r"(?![A-Z0-9])", text):
+            if re.search(r"(?<![A-Z0-9])" + re.escape(e) + r"(?![A-Z0-9])", scrubbed):
                 problems.append(f"names off-path entity {e!r}")
         for cited in re.findall(r"\[(\d{8})\]", text):
             if cited not in seqs:
