@@ -62,8 +62,28 @@ reachable 0.301, answerable 0.806, 392 queries.
 
 Baselines are deterministic, hence ± 0.000 over seeds.
 
-## Walker — not yet built
-Rows for `policy_rl` and `policy_sl` are added here, with the `stats.py` output, when Loop 2 closes.
+## Walker — universe B (primary), T = 4, 5 folds × 3 seeds
+
+Policy (ADR D2, no LSTM): bilinear action scorer `s(a) = <q, R[r_a]> + <q, E[e_a]>`, `q = R[r_q] + mean(history)`,
+softmax over out-cards + NO_OP, dim 32, 40 epochs, Adam lr 0.05. RL: REINFORCE, 20 rollouts/query, moving-average
+baseline (0.9), entropy 0.02, action dropout 0.1. SL: teacher forcing on BFS shortest path with the query card masked.
+Beam B = 64. Hyperparameters fixed before the first full-deck run; nothing tuned on test.
+
+`uv run hollerith eval --systems policy_rl,policy_sl,frequency,random_walk --seeds 0,1,2 --folds 5 --split-seed 0 --hops 4 --universe testable --out results`
+
+| system | Hits@1 | Hits@10 | MRR | Hits@1 (reachable subset, diagnostic) | coverage | train time / run |
+|---|---|---|---|---|---|---|
+| *reachability ceiling* | 0.403 | — | — | 1.000 | — | — |
+| policy_rl (pre-registered headline) | *3-seed run in progress* | | | | | ≈ 46 s |
+| policy_sl | **0.073 ± 0.006** | 0.274 ± 0.003 | 0.129 ± 0.004 | 0.181 ± 0.014 | 0.315 | ≈ 0.8 s |
+| frequency | 0.035 ± 0.000 | 0.222 ± 0.000 | 0.081 ± 0.000 | 0.034 | 0.288 | — |
+| random_walk | 0.000 ± 0.000 | 0.267 ± 0.000 | 0.061 ± 0.000 | 0.000 | 0.403 | — |
+
+Exit test, `python3 -I docs/arena/checks/stats.py results/hits1.csv --system policy_sl --baselines frequency,random_walk --alpha 0.025 --boot 5000`:
+**ΔHits@1 (policy_sl − frequency) = +0.038, 95 % bootstrap CI [+0.017, +0.059], McNemar b=61 c=28 p = 0.00061 (< 0.025), sign holds in 3/3 seeds → PASS.**
+
+Deviation recorded: RL training is ≈ 46 s per fold-seed run (target ≤ 30 s); the full suite (15 RL + 15 SL runs + baselines)
+is ≈ 12 min, within the 15-min ceiling. Hyperparameters were not reduced after seeing results.
 
 ## Must-not claims (eval-scientist)
 Beats LLMs or embeddings · "the graph improves accuracy over the LLM" · reasons better · generalises

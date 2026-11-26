@@ -153,4 +153,10 @@ Built: `graph.py` (view over cards, BFS), `split.py` (5-fold by fact, both direc
 `split.testable_facts`, `--universe testable|all` on `split`/`eval`; `Ranker.fit(graph, train_facts, val_facts, seed)` so every system walks the same graph; val cards stay in the graph (their facts are masked tuning queries). Tests: 176 passed, 1 skipped. Independent leakage gate: 0 leaks.
 **Real figures (eval-scientist asked):** B = 144/196 facts, 288 queries; reachable **34.7 % (T=3), 40.3 % (T=4), 43.8 % (T=5)**; answerable 90.3 % (the rest: an entity's other edges fell in the same test fold). A at T=3: reachable 30.1 %, answerable 80.6 %. Baselines B/T=3: frequency Hits@1 0.035, random walk 0.000. Under scope-risk's rule (<50 % → stop, ship A's reporting) no further spend on the ceiling. **T = 4 fixed now, before any policy**: lifts the ceiling for all systems equally and a 4-card answer fits the reader. Full table and commands: [results.md](results.md). Time on L2-F1: ~0.3 h (cap 0.35).
 
-**Hours used:** ~3.1 h of 12. **Hours left:** ~8.9.
+### 2026-11-26 19:30 — Walker built (Claude Code); SL passes the pre-registered exit test; RL running
+Decision: proceed with the policy without Diya's explicit who-builds-what answer, following `scope-risk`'s recommended split (Kiro: UI + MCP + `.kiro/`; Claude Code: policy); not pitch-changing; reassignable. `policy.py` per ADR D2 (no LSTM, numpy, closed-form gradients verified by finite differences; RL + SL on the same parameters; beam B=64; query entity never an answer). Commit pushed.
+**Verification:** `uv run pytest -q` → **185 passed, 1 skipped**; toy composition learned by both modes.
+**Results (universe B, T=4, 3 seeds; `results.md`):** policy_sl Hits@1 **0.073 ± 0.006**, Hits@10 0.274, MRR 0.129, reachable-subset 0.181; frequency 0.035; random walk 0.000. `stats.py`: Δ +0.038, CI [+0.017, +0.059], McNemar p=0.0006 < 0.025, sign 3/3 → **PASS**. SL ≈ 0.8 s/run.
+RL seed 0 (5 folds): Hits@1 0.073, reachable-subset 0.181 — same as SL — but **46 s/run** (target ≤30 s; suite ≈12 min, within 15-min ceiling). Not reducing rollouts/epochs after seeing results; deviation recorded. Full 3-seed RL run started in background; Loop 2 reviewer subagent spawned on the policy/eval code and on the pooled-seed statistics question.
+
+**Hours used:** ~4.0 h of 12. **Hours left:** ~8.0.
