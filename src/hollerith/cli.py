@@ -94,12 +94,15 @@ def cmd_split(args: argparse.Namespace) -> int:
 def cmd_eval(args: argparse.Namespace) -> int:
     from .baselines import BASELINES
     from .evaluate import format_table, run
+    from .policy import Policy
     systems = {}
     for name in args.systems.split(","):
         if name in BASELINES:
             systems[name] = BASELINES[name](args.hops) if name == "random_walk" else BASELINES[name]()
+        elif name in ("policy_rl", "policy_sl"):
+            systems[name] = Policy(mode=name[-2:], hops=args.hops, epochs=args.epochs, verbose=args.verbose)
         else:
-            print(f"error: unknown system {name!r}; known: {sorted(BASELINES)}", file=sys.stderr)
+            print(f"error: unknown system {name!r}; known: {sorted(BASELINES) + ['policy_rl', 'policy_sl']}", file=sys.stderr)
             return 1
     seeds = [int(s) for s in args.seeds.split(",")]
     summary = run(args.deck, systems, args.out, seeds, args.folds, args.split_seed, args.hops, args.universe)
@@ -157,6 +160,8 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--split-seed", type=int, default=0)
     p.add_argument("--hops", type=int, default=4)
     p.add_argument("--universe", choices=["testable", "all"], default="testable")
+    p.add_argument("--epochs", type=int, default=40)
+    p.add_argument("--verbose", action="store_true")
     p.set_defaults(fn=cmd_eval)
 
     args = ap.parse_args(argv)
