@@ -117,4 +117,18 @@ Built: `pyproject.toml` (uv, hatchling, `hollerith` CLI), MIT `LICENSE`, `.gitig
 - **Harness defect found and fixed:** `check_deck.py` inferred inverses from any co-occurring (s,o)/(o,s) pair and raised 4 false "more than one inverse" failures (HOLLERITH both FOUNDED and LED TMC). Rewritten to require an inverse to cover *every* card of a relation. Re-run clean; a deliberately broken 3-card deck still trips `missing inverse` / `dangling`.
 Still Kiro-only: `.kiro/**`. Proposed for Kiro: MCP server; Loop 2 or Loop 3 (ADR §11). Open: Diya's Kiro-scope choice; push approval; 30-card spot check (not by the author).
 
-**Hours used:** ~1.25 h of the 12 h build budget (Loop 1 complete; Kiro overhead not incurred). **Hours left:** ~10.75.
+### 2026-11-26 17:40 — Diya: "github connected now use kiro" → repo already on GitHub; pushed deck + arena
+Found commit `3231d20` (author/committer Diya, no trailer, 17:28) already on `origin/main` with everything but the deck. Pushed `c435787` (deck 196/392, ADR v1.1, authorship ledger, harness fixes). Committed to `main` directly — Diya's workflow here, and Kiro web reads `main`. Gave Diya the paste from spec-input-1 v2.
+
+### 2026-11-26 17:55 — Loop 1 reviewer subagent report → 4 majors, 7 minors, 0 blockers; all fixed
+Report and fixes in [loop-1-findings.md](loop-1-findings.md). Fixes committed as `8c58a1d` and pushed.
+**Verification (commands and output):**
+- `uv run pytest -q` → **160 passed, 1 skipped** (skip = steering-doc agreement test awaiting Kiro). Was 80; +80 tests cover strict load (8 layout violations), punch rejection (10 cases), card pairing, all 61 characters pinned, 12 CLI exit-code tests.
+- `uv run --with hypothesis python -I docs/arena/checks/check_roundtrip.py --cases 5000 --seed 11` → 0 failures against the rebuilt encoder.
+- `python3 -I docs/arena/checks/check_deck.py data/cards.deck --sources WIKI,IBMARCH,CHM` → 0 problems; `uv run hollerith lint` → clean.
+- Reviewer's five adversarial `punch` calls re-run: duplicate-with-whitespace, self-loop-with-whitespace, empty subject, inverse-on-forward → rejected with `DeckError`; `" HOLLERITH"` → now normalised to `HOLLERITH` (correct; previously created a ghost entity).
+- Deck accuracy (reviewer, seed 2026, 30 forward cards): 29 TRUE, 1 DOUBTFUL (Kilburn/Williams tube → replaced with Kilburn BUILT Manchester Baby), 0 FALSE.
+- Fresh clone at `c435787` (reviewer): green.
+**Loop 1 status: Claude Code's half closed; Kiro's half (spec-input-1 v2 groups A/B/C) not started.** Exit criteria still open: steering test un-skips and passes; hooks fire; MCP server answers; ≥5 Kiro-punched cards lint-clean.
+
+**Hours used:** ~2.0 h of the 12 h build budget (Loop 1 core + review fixes). **Hours left:** ~10.0.
