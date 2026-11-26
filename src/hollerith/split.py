@@ -24,7 +24,7 @@ from .deck import Deck, Fact
 from .graph import Graph, forward_facts, with_inverses
 
 DEFAULT_FOLDS = 5
-DEFAULT_HOPS = 3
+DEFAULT_HOPS = 4  # pre-registered 2026-11-26 (results.md); reachability 40.3% under universe B
 VAL_FRACTION = 0.1
 
 
@@ -54,10 +54,40 @@ def _pair(f: Fact) -> frozenset[str]:
     return frozenset((f.subject, f.object))
 
 
-def make_folds(deck: Deck, k: int = DEFAULT_FOLDS, seed: int = 0, hops: int = DEFAULT_HOPS) -> list[Fold]:
+def neighbour_counts(deck: Deck) -> dict[str, int]:
+    """Distinct neighbour entities per entity, over the full deck."""
+    nb: dict[str, set[str]] = {}
+    for f in deck.facts():
+        nb.setdefault(f.subject, set()).add(f.object)
+        nb.setdefault(f.object, set()).add(f.subject)
+    return {e: len(s) for e, s in nb.items()}
+
+
+def testable_facts(deck: Deck, min_neighbours: int = 2) -> list[Fact]:
+    """Pre-registered test universe (ADR-001 §4, eval-scientist ruling on L2-F1).
+
+    A fact (h, r, t) is testable iff h and t each have at least `min_neighbours` distinct
+    neighbour entities in the FULL deck. Uses deck structure only — no model, no gold-path
+    lookup — so it defines the task rather than selecting results. A leaf fact cannot be
+    answered by any graph method once held out; testing it measures the deck's shape, not learning.
+    """
+    nb = neighbour_counts(deck)
+    return [f for f in forward_facts(deck) if nb.get(f.subject, 0) >= min_neighbours and nb.get(f.object, 0) >= min_neighbours]
+
+
+def make_folds(deck: Deck, k: int = DEFAULT_FOLDS, seed: int = 0, hops: int = DEFAULT_HOPS,
+               universe: str = "testable") -> list[Fold]:
     facts = forward_facts(deck)
+    if universe == "testable":
+        pool = testable_facts(deck)
+    elif universe == "all":
+        pool = facts
+    else:
+        raise ValueError(f"universe must be 'testable' or 'all', not {universe!r}")
+    pool_set = {f.triple() for f in pool}
+    always_train = [f for f in facts if f.triple() not in pool_set]
     rng = random.Random(seed)
-    order = facts[:]
+    order = pool[:]
     rng.shuffle(order)
     buckets = [order[i::k] for i in range(k)]
     folds: list[Fold] = []
@@ -68,14 +98,20 @@ def make_folds(deck: Deck, k: int = DEFAULT_FOLDS, seed: int = 0, hops: int = DE
         rest = [f for f in facts if f.triple() not in test_set]
         excluded = [f for f in rest if _pair(f) in test_pairs]
         trainable = [f for f in rest if _pair(f) not in test_pairs]
+        # Non-testable facts never leave train (they are context, not questions); the
+        # validation slice is drawn from the testable part only.
+        at_set = {f.triple() for f in always_train}
+        fixed = [f for f in trainable if f.triple() in at_set]
+        movable = [f for f in trainable if f.triple() not in at_set]
         vrng = random.Random(seed * 1000 + i)
-        shuffled = trainable[:]
-        vrng.shuffle(shuffled)
-        n_val = max(1, round(len(shuffled) * VAL_FRACTION))
-        val = sorted(shuffled[:n_val], key=lambda f: f.sequence)
-        train = sorted(shuffled[n_val:], key=lambda f: f.sequence)
-        # Policies train on train ∪ val cards' graph structure only via `train`; val is for tuning.
-        g = Graph(with_inverses(train, deck))
+        vrng.shuffle(movable)
+        n_val = max(1, round(len(movable) * VAL_FRACTION)) if movable else 0
+        val = sorted(movable[:n_val], key=lambda f: f.sequence)
+        train = sorted(movable[n_val:] + fixed, key=lambda f: f.sequence)
+        # Walking graph = every non-test, non-excluded card (train ∪ val). Val facts are tuning
+        # QUERIES whose own edge is masked during their rollout; their cards stay in the graph.
+        # Reachability/answerability are therefore measured on the graph a policy can walk.
+        g = Graph(with_inverses(train + val, deck))
         queries: list[Query] = []
         for f in test:
             for s, r, gold, d in ((f.subject, f.relation, f.object, "fwd"),
@@ -87,8 +123,13 @@ def make_folds(deck: Deck, k: int = DEFAULT_FOLDS, seed: int = 0, hops: int = DE
     return folds
 
 
+def walking_graph(fold: Fold, deck: Deck) -> Graph:
+    """The graph a policy may walk for this fold: train ∪ val cards (never test or excluded)."""
+    return Graph(with_inverses(fold.train + fold.val, deck))
+
+
 def assert_no_leakage(fold: Fold, deck: Deck) -> None:
-    """Fail loudly if any test fact, its inverse, or any same-pair edge is in the training cards."""
+    """Fail loudly if any test fact, its inverse, or any same-pair edge is in the walkable cards."""
     train_cards = with_inverses(fold.train + fold.val, deck)
     train_triples = {f.triple() for f in train_cards}
     train_pairs = {_pair(f) for f in train_cards}
@@ -105,10 +146,12 @@ def _write_jsonl(path: Path, facts: list[Fact]) -> None:
     path.write_text("".join(json.dumps({"s": f.subject, "r": f.relation, "o": f.object, "seq": f.sequence}) + "\n" for f in facts))
 
 
-def write_folds(folds: list[Fold], out_dir: str | Path, deck: Deck, seed: int, hops: int) -> dict:
+def write_folds(folds: list[Fold], out_dir: str | Path, deck: Deck, seed: int, hops: int,
+                universe: str = "testable") -> dict:
     out = Path(out_dir)
     out.mkdir(parents=True, exist_ok=True)
-    meta: dict = {"seed": seed, "k": len(folds), "hops": hops, "deck_cards": len(deck), "folds": []}
+    meta: dict = {"seed": seed, "k": len(folds), "hops": hops, "deck_cards": len(deck), "universe": universe,
+                  "facts_total": len(forward_facts(deck)), "facts_testable": len(testable_facts(deck)), "folds": []}
     for fold in folds:
         assert_no_leakage(fold, deck)
         _write_jsonl(out / f"fold{fold.k}.train.jsonl", with_inverses(fold.train, deck))

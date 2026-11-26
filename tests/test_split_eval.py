@@ -24,8 +24,9 @@ def folds(deck):
     return make_folds(deck, k=5, seed=0, hops=3)
 
 
-def test_every_fact_is_tested_exactly_once(deck, folds) -> None:
-    facts = forward_facts(deck)
+def test_every_testable_fact_is_tested_exactly_once(deck, folds) -> None:
+    from hollerith.split import testable_facts
+    facts = testable_facts(deck)
     tested = [f.triple() for fold in folds for f in fold.test]
     assert sorted(tested) == sorted(f.triple() for f in facts)
     assert len(set(tested)) == len(facts)
@@ -69,8 +70,9 @@ def test_split_is_deterministic_under_seed(deck) -> None:
 
 
 def test_reachability_is_consistent_with_bfs(deck, folds) -> None:
+    from hollerith.split import walking_graph
     fold = folds[0]
-    g = Graph(with_inverses(fold.train, deck))
+    g = walking_graph(fold, deck)
     for q in fold.queries[:40]:
         path = g.shortest_path(q.subject, q.gold, 3)
         assert q.reachable == (path is not None), q
@@ -94,21 +96,23 @@ def test_filtered_rank_rules() -> None:
 
 
 def test_random_walk_is_a_distribution_and_deterministic(deck, folds) -> None:
-    g = Graph(with_inverses(folds[0].train, deck))
+    from hollerith.split import walking_graph
+    g = walking_graph(folds[0], deck)
     rw = RandomWalk(hops=3)
-    rw.fit(g, None, seed=0)
+    rw.fit(g, folds[0].train, folds[0].val, seed=0)
     s = g.entities[0]
     a = rw.scores(s, "FOUNDED")
     assert abs(sum(a.values()) - 1.0) < 1e-9
-    rw.fit(g, None, seed=99)
+    rw.fit(g, folds[0].train, folds[0].val, seed=99)
     assert rw.scores(s, "FOUNDED") == a
     assert rw.scores("NOT AN ENTITY", "FOUNDED") == {}
 
 
 def test_frequency_counts_tails(deck, folds) -> None:
-    g = Graph(with_inverses(folds[0].train, deck))
+    from hollerith.split import walking_graph
+    g = walking_graph(folds[0], deck)
     fq = Frequency()
-    fq.fit(g, None, seed=0)
+    fq.fit(g, folds[0].train, folds[0].val, seed=0)
     sc = fq.scores("ANYONE", "WORKED AT")
     assert sc and max(sc.values()) >= 2  # BELL LABS / MIT / UNIV OF MANCHESTER are frequent tails
 
@@ -129,3 +133,43 @@ def test_run_end_to_end_writes_csv_and_summary(tmp_path) -> None:
     assert csv_lines[0] == "seed,query,frequency,random_walk"
     assert len(csv_lines) - 1 == summary["queries"]
     assert "uv run hollerith eval" in summary["command"]
+
+
+# ---- pre-registered test universe (eval-scientist ruling on L2-F1) ----------------------
+from hollerith.split import neighbour_counts, testable_facts
+
+
+def test_testable_rule_requires_two_neighbours_at_both_ends(deck) -> None:
+    nb = neighbour_counts(deck)
+    tf = testable_facts(deck)
+    assert tf and len(tf) < len(forward_facts(deck))
+    for f in tf:
+        assert nb[f.subject] >= 2 and nb[f.object] >= 2
+    leaves = {e for e, n in nb.items() if n < 2}
+    assert leaves  # the deck does have leaf entities
+    for f in forward_facts(deck):
+        if f.subject in leaves or f.object in leaves:
+            assert f.triple() not in {t.triple() for t in tf}
+
+
+def test_testable_universe_tests_each_testable_fact_once_and_keeps_leaves_in_train(deck) -> None:
+    folds = make_folds(deck, k=5, seed=0, universe="testable")
+    tested = sorted(f.triple() for fold in folds for f in fold.test)
+    assert tested == sorted(f.triple() for f in testable_facts(deck))
+    testable = {f.triple() for f in testable_facts(deck)}
+    for fold in folds:
+        for f in forward_facts(deck):
+            if f.triple() not in testable:
+                in_train = f.triple() in {t.triple() for t in fold.train}
+                in_excl = f.triple() in {t.triple() for t in fold.excluded}
+                assert in_train or in_excl, f  # never in test, never in val
+        for f in fold.val:
+            assert f.triple() in testable
+        assert_no_leakage(fold, deck)
+
+
+def test_all_universe_still_available(deck) -> None:
+    folds = make_folds(deck, k=5, seed=0, universe="all")
+    assert sum(len(f.test) for f in folds) == len(forward_facts(deck))
+    with pytest.raises(ValueError):
+        make_folds(deck, universe="some")

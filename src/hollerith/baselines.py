@@ -15,11 +15,17 @@ from .graph import Graph
 
 
 class Ranker:
-    """Interface every system implements. `scores` maps entity -> score; absent = unreached."""
+    """Interface every system implements.
+
+    fit(graph, train_facts, val_facts, seed): `graph` holds every card the system may walk
+    (train ∪ val cards); `train_facts` are the forward facts it may learn from; `val_facts` are
+    tuning queries (their own edge must be masked during their rollout). `scores` maps
+    entity -> score for a query; an absent entity is "unreached" (rank ∞).
+    """
 
     name = "ranker"
 
-    def fit(self, train: Graph, val: Graph | None, seed: int) -> None:  # pragma: no cover - interface
+    def fit(self, graph: Graph, train_facts: list, val_facts: list, seed: int) -> None:  # pragma: no cover - interface
         raise NotImplementedError
 
     def scores(self, subject: str, relation: str) -> dict[str, float]:  # pragma: no cover - interface
@@ -32,16 +38,16 @@ class RandomWalk(Ranker):
     def __init__(self, hops: int = 3) -> None:
         self.hops = hops
 
-    def fit(self, train: Graph, val: Graph | None, seed: int) -> None:
-        self.g = train
-        n = len(train.entities)
+    def fit(self, graph: Graph, train_facts: list, val_facts: list, seed: int) -> None:
+        self.g = graph
+        n = len(graph.entities)
         P = np.zeros((n, n), dtype=np.float64)
-        for e, i in train.index.items():
-            outs = train.edges(e)
+        for e, i in graph.index.items():
+            outs = graph.edges(e)
             deg = len(outs) + 1  # + NO_OP
             P[i, i] += 1.0 / deg
             for f in outs:
-                P[i, train.index[f.object]] += 1.0 / deg
+                P[i, graph.index[f.object]] += 1.0 / deg
         self.PT = np.linalg.matrix_power(P, self.hops)
 
     def scores(self, subject: str, relation: str) -> dict[str, float]:
@@ -54,9 +60,9 @@ class RandomWalk(Ranker):
 class Frequency(Ranker):
     name = "frequency"
 
-    def fit(self, train: Graph, val: Graph | None, seed: int) -> None:
+    def fit(self, graph: Graph, train_facts: list, val_facts: list, seed: int) -> None:
         counts: dict[str, dict[str, int]] = {}
-        for f in train.facts:
+        for f in graph.facts:
             counts.setdefault(f.relation, {})
             counts[f.relation][f.object] = counts[f.relation].get(f.object, 0) + 1
         self.counts = counts

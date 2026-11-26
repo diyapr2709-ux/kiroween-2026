@@ -83,9 +83,10 @@ def cmd_neighbours(args: argparse.Namespace) -> int:
 def cmd_split(args: argparse.Namespace) -> int:
     from .split import make_folds, write_folds
     deck = Deck.load(args.deck)
-    folds = make_folds(deck, k=args.folds, seed=args.split_seed, hops=args.hops)
-    meta = write_folds(folds, args.out, deck, args.split_seed, args.hops)
-    print(f"folds={meta['k']} queries={meta['total_queries']} reachable={meta['reachable_rate']:.3f} "
+    folds = make_folds(deck, k=args.folds, seed=args.split_seed, hops=args.hops, universe=args.universe)
+    meta = write_folds(folds, args.out, deck, args.split_seed, args.hops, args.universe)
+    print(f"universe={meta['universe']} ({meta['facts_testable']}/{meta['facts_total']} facts) "
+          f"folds={meta['k']} queries={meta['total_queries']} reachable={meta['reachable_rate']:.3f} "
           f"answerable={meta['answerable_rate']:.3f} excluded_facts={meta['excluded_total']} -> {args.out}/")
     return 0
 
@@ -101,7 +102,7 @@ def cmd_eval(args: argparse.Namespace) -> int:
             print(f"error: unknown system {name!r}; known: {sorted(BASELINES)}", file=sys.stderr)
             return 1
     seeds = [int(s) for s in args.seeds.split(",")]
-    summary = run(args.deck, systems, args.out, seeds, args.folds, args.split_seed, args.hops)
+    summary = run(args.deck, systems, args.out, seeds, args.folds, args.split_seed, args.hops, args.universe)
     print(format_table(summary))
     print(f"-> {args.out}/hits1.csv, {args.out}/summary.json")
     return 0
@@ -142,7 +143,9 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--out", default="splits")
     p.add_argument("--folds", type=int, default=5)
     p.add_argument("--split-seed", type=int, default=0)
-    p.add_argument("--hops", type=int, default=3)
+    p.add_argument("--hops", type=int, default=4)
+    p.add_argument("--universe", choices=["testable", "all"], default="testable",
+                   help="testable = pre-registered facts whose endpoints both have >=2 neighbours (default); all = every fact")
     p.set_defaults(fn=cmd_split)
 
     p = sub.add_parser("eval", help="evaluate systems with filtered Hits@k / MRR over the folds")
@@ -152,7 +155,8 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--out", default="results")
     p.add_argument("--folds", type=int, default=5)
     p.add_argument("--split-seed", type=int, default=0)
-    p.add_argument("--hops", type=int, default=3)
+    p.add_argument("--hops", type=int, default=4)
+    p.add_argument("--universe", choices=["testable", "all"], default="testable")
     p.set_defaults(fn=cmd_eval)
 
     args = ap.parse_args(argv)

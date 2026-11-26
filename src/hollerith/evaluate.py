@@ -23,7 +23,7 @@ from pathlib import Path
 from .baselines import Ranker
 from .deck import Deck
 from .graph import Graph, with_inverses
-from .split import Fold, Query, make_folds
+from .split import Fold, Query, make_folds, walking_graph
 
 
 @dataclass
@@ -75,9 +75,7 @@ def evaluate_system(system: Ranker, folds: list[Fold], deck: Deck, seeds: list[i
     out: list[QueryResult] = []
     for seed in seeds:
         for fold in folds:
-            train = Graph(with_inverses(fold.train, deck))
-            val = Graph(with_inverses(fold.val, deck))
-            system.fit(train, val, seed)
+            system.fit(walking_graph(fold, deck), fold.train, fold.val, seed)
             for q in fold.queries:
                 qid = f"f{q.fold}-{q.fact_seq:08d}-{q.direction}"
                 scores = system.scores(q.subject, q.relation) if q.answerable else {}
@@ -142,7 +140,8 @@ def write_results(results: list[QueryResult], folds: list[Fold], out_dir: str | 
 
 
 def format_table(summary: dict) -> str:
-    lines = [f"queries={summary['queries']}  reachable={summary['reachable_rate']:.3f}  answerable={summary['answerable_rate']:.3f}  excluded_facts={summary['excluded_facts']}",
+    lines = [f"universe={summary.get('universe', '?')} ({summary.get('facts_testable', '?')}/{summary.get('facts_total', '?')} facts)  queries={summary['queries']}  "
+             f"reachable={summary['reachable_rate']:.3f}  answerable={summary['answerable_rate']:.3f}  excluded_facts={summary['excluded_facts']}",
              f"{'system':14} {'Hits@1':>15} {'Hits@10':>15} {'MRR':>15} {'Hits@1|reach':>15} {'coverage':>10}"]
     for name, m in summary["systems"].items():
         def c(k, w=15):
@@ -153,14 +152,21 @@ def format_table(summary: dict) -> str:
 
 
 def run(deck_path: str | Path, systems: dict[str, Ranker], out_dir: str | Path, seeds: list[int],
-        k: int, split_seed: int, hops: int) -> dict:
+        k: int, split_seed: int, hops: int, universe: str = "testable") -> dict:
     deck = Deck.load(deck_path)
-    folds = make_folds(deck, k=k, seed=split_seed, hops=hops)
+    folds = make_folds(deck, k=k, seed=split_seed, hops=hops, universe=universe)
     from .split import assert_no_leakage
     for fold in folds:
         assert_no_leakage(fold, deck)
     results: list[QueryResult] = []
     for sysm in systems.values():
         results.extend(evaluate_system(sysm, folds, deck, seeds))
-    command = "uv run hollerith eval --systems " + ",".join(systems) + f" --seeds {','.join(map(str, seeds))} --folds {k} --split-seed {split_seed} --hops {hops}"
-    return write_results(results, folds, out_dir, seeds, command)
+    command = ("uv run hollerith eval --systems " + ",".join(systems) + f" --seeds {','.join(map(str, seeds))}"
+               f" --folds {k} --split-seed {split_seed} --hops {hops} --universe {universe}")
+    summary = write_results(results, folds, out_dir, seeds, command)
+    summary["universe"] = universe
+    from .split import forward_facts, testable_facts
+    summary["facts_total"] = len(forward_facts(deck))
+    summary["facts_testable"] = len(testable_facts(deck))
+    (Path(out_dir) / "summary.json").write_text(json.dumps(summary, indent=2))
+    return summary
