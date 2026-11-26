@@ -1,0 +1,12 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+.hypothesis/
+# OS / editors
+.DS_Store
+# NOTE: .kiro/ is deliberately NOT ignored - it is a judged artifact.

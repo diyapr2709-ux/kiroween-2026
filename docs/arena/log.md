@@ -1,0 +1,109 @@
+# Arena decision log — Hollerith's Ghost
+
+Claude Code is orchestrator / validator / challenger. It writes only under `docs/arena/`.
+Kiro writes all application code, tests and `/.kiro`. Every decision below is logged with its
+rationale so it can be audited later. Times are US Eastern unless stated.
+
+---
+
+## 2026-11-26 — Phase 0 kickoff
+
+**State of repo:** empty (`git init` only, no commits, no `.kiro/`, no `src/`).
+
+**Spawned four arena subagents in parallel**, each briefed with the same project context and a
+role-specific question set, each capped at ≤400 words with a ranked list:
+
+| Agent | Owns | Must settle |
+|---|---|---|
+| `scope-risk` | ≤12 h build budget, cut list, kill-switches | hour budget per component; D1–D3 from a schedule standpoint; which standards are expensive |
+| `eval-scientist` | validity of the evaluation | split construction on a tiny graph, leakage paths, Hits@k from a walk policy, fair baselines, the honest headline claim |
+| `judge-sim` | Kiroween rubric scoring | /10 per criterion, where points are lost, what "sufficient Kiro use" looks like in `/.kiro`, Resurrection fit |
+| `product-design` | real user, complete-product loop, UI direction | primary user, core loop, web vs terminal, how the card metaphor becomes load-bearing, 3-min demo story |
+
+**Arbiter rule set (fixed before results arrive, to avoid anchoring):**
+1. Any conflict is resolved by the agent whose domain the conflict belongs to, unless it breaks a
+   non-negotiable (Kiro writes all code; deadline fixed; scientific standards).
+2. Schedule beats ambition: if `scope-risk` and any other agent disagree on *whether* to build
+   something, `scope-risk` wins unless the feature is required to score on a rubric criterion
+   (`judge-sim` adjudicates that).
+3. `eval-scientist` has veto over any metric, claim or baseline.
+4. Max 2 arbitration rounds; disagreements left after round 2 are recorded as open risks in the ADR.
+
+**Environment facts gathered while agents run** (commands: `cal 11 2026; cal 12 2026`, `which kiro`,
+`ls ~/.kiro`, `python3 --version`, `node --version`, `sysctl machdep.cpu.brand_string hw.ncpu hw.memsize`):
+
+| Fact | Value | Consequence |
+|---|---|---|
+| Calendar | Thu Nov 26 → Fri Dec 4 2026 = 8 days | matches brief; Loop 1 starts tomorrow |
+| **Kiro installed?** | **No.** No `kiro` / `kiro-cli` binary, no `/Applications/Kiro*.app`, no `~/.kiro` | **Day-0 blocker.** Nothing in `/.kiro` can exist until Kiro is installed and signed in. Goes into ADR as precondition P0. |
+| Python | 3.12.13 + `uv` present; numpy / torch / hypothesis **not** installed | Python stack is viable. A numpy-only policy avoids a torch install on every fresh clone (fresh-clone gate gets faster and less fragile). `hypothesis` is a one-line add for property-based tests. |
+| Node | v25.9.0 + npm present; no pnpm/bun | A static web UI (plain HTML/JS or Vite) is viable without a new toolchain. |
+| Hardware | Apple M4, 10 cores, 24 GB | "<5 min CPU training" is a comfortable budget on this machine; the fresh-clone gate must still assume a slower machine. |
+
+### Reports received (2 of 4) — positions recorded before arbitration
+
+**`product-design`** — Primary user: curious learner of computing history ("tell me how X led to Y, and prove it"). Reframe: *"an AI that shows its receipts"* — the deck is the citation. UI: **web**. Core loop: hopper of 4 suggested questions → question keypunched → reader animation → green-bar narration citing `[seq]` → inspect / pull a card / click entity → save deck. Load-bearing ideas (≤1 h each): *pull-a-card* (remove a card, narrator re-runs, answer reroutes or jams); *confidence punched in columns 56–72* (policy step probability as digits — makes the RL visible). Must: suggested questions, reader animation, jam + reject pocket, `[seq]` citations, hover-to-decode a column, off-graph → "NO CARDS, NO ANSWER". Cut: keypunch-your-own-fact, Wikidata, terminal, mobile, accounts. 3-min demo story with timestamps supplied.
+
+**`scope-risk`** — 9.5 h work + 2.5 h buffer. D1 hand-curated; D2 REINFORCE (baseline+entropy+action dropout) decoded by beam search, with a pre-agreed supervised-on-BFS-paths fallback (~0.5 h) if Hits@1 isn't ≥15 pts over random walk by Dec 1 noon; D3 **static web page replaying JSON traces written by the CLI** (no backend). Drop now: Wikidata, web backend, LLM-judge faithfulness, hyperparameter sweeps, >3 hops, hosting, sound/physics. Kill-switches: L1 late → 150 triples; web UI no deck after 1.5 h → `rich` terminal; video not recorded by Dec 3 noon PT → stop polish; **code freeze Dec 3 18:00 PT**. Top risk: Kiro overhead (≤5 tasks per spec; never hand-patch code). Commit cached LLM responses and run fresh-clone gate `--offline`; keep regex parser fallback. Faithfulness: deterministic entity-on-path check, not an LLM judge. LLM-only baseline: cut to 1 run, temperature 0, ~50 questions. Nov 26 is Thanksgiving → 0 h today.
+
+**Early agreement:** D1 hand-curated; D3 web; Wikidata cut; deterministic faithfulness check.
+**Early conflicts to arbitrate once all four are in:**
+- C1 — `product-design` SHOULD list (click-entity follow-up, pull-a-card, PNG export, sound, share URL) vs `scope-risk` 1.5 h web budget and "no sound/physics". Rule 2 (schedule wins unless rubric-required) → needs `judge-sim`.
+- C2 — `scope-risk` wants 3-seed runs under 5 min each; fine. But its "≥15 pts over random walk" kill-switch threshold and "non-overlapping std" exit criterion both need `eval-scientist` sign-off (rule 3).
+- C3 — `scope-risk` cuts LLM-only baseline to 1 run / 50 q; `eval-scientist` must confirm that still counts as a baseline.
+
+**`judge-sim`** (3 of 4) — **Rules check (2025 edition verified via kiro.dev blog + dev.to; 2026 Devpost rules page returned 403; 2026 deadline Dec 4 and a Best Resurrection prize confirmed via third-party listing only).** Published criteria are THREE, equally weighted: *Potential Value*, *Implementation* (Kiro use — "variety and depth"), *Quality & Design*. Our 5×20% rubric is not the published one: Innovation folds into Quality & Design; Presentation isn't scored separately; Kiro use and Potential Value (our weakest) are ~33% each. **Required artifacts:** public repo with OSI license, `/.kiro` at root and not gitignored, **a working app URL**, video ≤3 min, write-up of Kiro use. Score as proposed: 6.0/10 (≈5.8 under the 3-criterion rubric). Weakest: Potential Impact 4/10 ("BFS answers these exactly — why RL?"; no user). Kiro artifacts by points/hour: (1) README "How Kiro built this" with spec v1→v2 diff and commits showing specs landed before code; (2) steering doc `hollerith.md` holding the 029 table + column layout as single source of truth; (3) project-specific hook: editing triples → card lint (20-col overflow, non-029 chars) + round-trip test + leakage gate; (4) 20-s IDE clip of a task running and the hook firing; (5) an MCP server that does real work — a config file alone earns ~nothing. Claude Code as validator: neutral if disclosed in one line, kept out of the video, review docs in a separate folder, Kiro task checkboxes aligned with commits. Resurrection is currently a **skin**; load-bearing fixes: the deck file *is* the database; neighbour lookup = simulated IBM 082 sorter pass on cols 1–20; 029 charset + 20-col fields force consistent entity names; narrator cites seq numbers (73–80) and the faithfulness check verifies every cited card is on the path. Top improvement: reframe value as *"answers you can audit; a jam means 'I don't know', not a hallucination"* and show the LLM-only baseline hallucinating (+2). Add a BFS oracle as upper bound (credibility). UI: **web** (+2 Design, +1 Presentation vs terminal); precompute demo-question paths so the demo can't fail.
+
+**Agreement now 3/3:** D1 hand-curated; D3 web; "AI that shows its receipts / audit" framing; deterministic faithfulness via `[seq]` citations; cards must be load-bearing not decorative.
+**New conflicts:**
+- C4 — **Hosting.** `scope-risk` drops hosting; `judge-sim` says a working app URL is *required*. Static-page-replaying-JSON (scope-risk's own D3) makes this cheap: GitHub Pages / Netlify drag-drop, ~0.25 h. Arbiter leans: hosting is non-negotiable; static deploy resolves it.
+- C5 — **MCP server.** `judge-sim` wants a real MCP server (Wikidata SPARQL fact-check per triple, ID punched in 56–72); `scope-risk` drops Wikidata; `product-design` wants 56–72 for policy confidence. Two claims on the same columns and a 1 h cost. Needs arbitration.
+- C6 — **Rubric itself.** CLAUDE.md's rubric is Diya's; published is 3-criterion. Arbiter will score against both and flag to Diya — this is a "changes the pitch" item.
+- C7 — "Why RL, not BFS?" — needs `eval-scientist`'s answer; the honest framing may be that BFS is the oracle and RL is the learned approximation that generalises to unseen queries.
+
+**`eval-scientist`** (4 of 4; sources: ar5iv 1711.05851, 1808.10568) — Validity threats ranked: (1) shortcut leakage beyond inverses (named inverse pairs, synonym relations) → remove every edge between {h,t} both directions, flag relation pairs with Jaccard > 0.5, mask the query edge during training rollouts; (2) 30 test queries → ±18 pp CI → **10-fold CV, both directions, pooled**; (3) unreachable held-out queries → report reachable share, metrics on all and on reachable subset; (4) filtered ranking, pessimistic ties; (5) **"non-overlapping std" over n=3 is not a test** → paired bootstrap 95 % CI on ΔHits@1 excludes 0 + McNemar p<0.05 + sign in all 3 seeds, vs max(random walk, **frequency baseline**). Random walk computed exactly as row e of Pᵀ. LLM-only: same model, temp 0, question + entity list → top-10 IDs; likely ≥60 % Hits@1 from memorisation → treat as reference, control with entity-anonymised deck. Hits@k via beam B=64, unreached = rank ∞. D1: prefers Wikidata (defensibility). D2: prefers learned scorer + beam (REINFORCE seed-sensitive on ~240 triples; MINERVA lost to DistMult on UMLS/Kinship). Headline and must-not claims supplied.
+
+### Arbitration (round 1 of 2; no round 2 needed)
+
+| Conflict | Resolution | Rule |
+|---|---|---|
+| C1 product SHOULD list vs 1.5 h UI budget | MUST = 4 suggested q, reader animation, jam + reject, `[seq]` citations, hover-decode, NO CARDS. Pull-a-card → S1 stretch. Sound/share/PNG/click-follow-up cut or stretch. | 2 (judge-sim: hero moment + load-bearing cards are the rubric-relevant parts; the rest is polish) |
+| C2 exit criterion | eval-scientist's bootstrap + McNemar + sign test replaces "non-overlapping std"; "≥15 pts" kill-switch threshold dropped in favour of the test itself | 3 (veto) |
+| C3 LLM-only budget | one run, temp 0, fixed 100-query subsample, cached & committed; anonymised control → S3 stretch | 3 defines it, 2 sizes it |
+| C4 hosting | required by published rules → GitHub Pages static deploy (~0.25 h) | non-negotiable beats schedule |
+| C5 MCP server / cols 56–72 | deck-MCP (`punch/decode/query/lint`) that Kiro uses while authoring — real work, offline, on-theme. Cols 56–72 → step confidence (stretch S2). Wikidata fact-check cut. | 1 (judge-sim owns "real work"; scope-risk owns the Wikidata cut) |
+| C6 rubric mismatch | ADR scores against both; flagged to Diya as pitch-affecting (§7) | operating rule: ask before pitch changes |
+| C7 why RL not BFS | BFS reachability = oracle upper bound; with the edge held out BFS cannot pick an answer. Goes in README. | 3 |
+| D1 | hand-curated with commit-before-split protocol + Jaccard lint | 2, with eval's mitigation adopted |
+| D2 | build RL **and** SL modes on one network (+0.5 h), report both; removes the Dec-1 gamble | arbiter compromise between scope-risk and eval |
+
+**Budget after arbitration:** 11.25 h committed, 0.75 h buffer. Thin; trigger table in ADR §3 funds overruns.
+
+**Output (v1.0):** ADR-001 drafted, stopped for approval.
+
+### 2026-11-26 17:05 — Diya: "kiro will be accessible in a few mins, build rest of the code meanwhile" → declined
+Writing application code is the one contract line that disqualifies the entry (Kiro must write all of `src/`, `tests/`, `.kiro/`; git history must show it). Instead: wrote [spec-input-1.md](spec-input-1.md) (P0 + Loop 1 brief for Kiro) and the arena agent definitions in `.claude/agents/` (`scope-risk`, `eval-scientist`, `judge-sim`, `product-design`, plus `challenger`, which CLAUDE.md requires after each loop). `.claude/agents/` is Claude Code tooling, not the app, and Diya asked for these files explicitly.
+
+### 2026-11-26 17:08 — Diya: "resolve conflicts using agentic arena" → round 2 run
+Each agent received the round-1 arbitration table and the rulings that went against it; asked to accept or contest with a budget-fitting alternative. All four replied.
+
+| Agent | Accepted | Contested |
+|---|---|---|
+| `scope-risk` | hosting; MCP (if 2 tools); RL+SL both built (SL first) | 60-run eval contradicts ≤60 s/run → 5-fold × 3 × 2 = 30 runs ≤30 s, multiprocessing; numpy LSTM is a trap → linear-softmax policy; would move keypunch, jam, hover-decode to stretch (−1 h) |
+| `eval-scientist` | hand-curated (with per-card source + reachability report); LLM-only reference (run all ~200, paired); anonymised control as stretch; folds → 5 first if needed | "headline = whichever passes" is post-hoc selection → pre-register or Holm-Bonferroni |
+| `judge-sim` | deck-MCP 8/10 vs Wikidata 6.5 — *conditional on visibility*; LLM-only sentence supplied; Innovation 7.5, Design 6.5 as revised | would cut CV + McNemar to fund pull-a-card (+1 on three criteria) |
+| `product-design` | templated typed-question narration (label `LISTING MODE`); one animation (cards drop + glow + line prints); fallback keeps staggered reveal | pull-a-card → MUST as precomputed ≤0.5 h variant; type-ahead chips (20 min) |
+
+**Final rulings (ADR §10):** pull-a-card MUST (precomputed), funded by MCP 4→2 tools and keypunch/scan/crumple → stretch; eval = 5-fold × 3 seeds × 2 modes, McNemar kept (veto); RL pre-registered as headline, Holm α=0.025 per mode; no-LSTM numpy policy, SL built first; per-card source code in cols 56–63; MCP visibility (transcript + IDE clip) MUST; type-ahead chips MUST. Dissent not adopted: `scope-risk` on jam/hover-decode → stretch (jam is the pitch; hover-decode is a tooltip). Budget unchanged at 11.25 h / 0.75 h buffer; UI line flagged as most likely to overrun.
+
+**Output (v1.1):** [ADR-001-direction.md](ADR-001-direction.md) §10; [spec-input-1.md](spec-input-1.md) updated to match. **STOPPED** for Diya's approval. Open for Diya: P0 (install Kiro — in progress per Diya), P1 (quota), §7 rubric choice, approve/amend ADR v1.1.
+
+### 2026-11-26 17:20 — Diya: "build code also" (second time) → validation harness built, app code still Kiro's
+Built `docs/arena/checks/` — Claude Code's independent validation harness, attributed as such, imported by nothing in the app: `ibm029_ref.py` (61-char 029 table, unique patterns), `check_roundtrip.py` (hypothesis, cross-checks Kiro's hole patterns against the reference), `check_deck.py` (layout / inverses / dangling / source codes / Jaccard), `check_leakage.py` (same-pair edge removal, exit 2 on leak), `stats.py` (paired bootstrap + McNemar exact + sign-over-seeds → PASS/FAIL), `check_faithfulness.py` (off-path entity / off-path citation), `selftest.sh`.
+**Self-test output** (`bash docs/arena/checks/selftest.sh`): all 6 sections pass — 3 000 generated round-trip cases, 0 failures; broken deck rejected; inverse leak caught; synthetic stats PASS (ΔHits@1 +0.225, CI [+0.172, +0.278], McNemar p=9e-15); faithfulness 50/51 with the unfaithful trace reported. *Caveat:* the synthetic deck has 3 entities, so the off-path-entity rule was not exercised (TURING not in vocab); it is exercised once the real deck exists.
+Still declined: writing `src/`, `tests/`, `.kiro/`. Reason unchanged — those must be Kiro's for the entry to survive judging, and the write-up must be truthful about authorship.
+
+### 2026-11-26 17:25 — Diya shares `app.kiro.dev/session` → Kiro is WEB, not desktop
+Consequence: Kiro works on a GitHub repo. Remote exists (`diyapr2709-ux/kiroween-2026`), `gh` authenticated, **zero commits**. P0 revised in ADR: first commit is `docs/arena/` + `.claude/agents/`, pushed, so Kiro's spec commits land after the arena. Awaiting Diya's go-ahead to commit and push (outward-facing action).
+
+**Hours used:** 0 build hours (Claude Code orchestration + harness only). **Hours left:** 12.
