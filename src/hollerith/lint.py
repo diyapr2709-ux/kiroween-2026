@@ -1,6 +1,8 @@
 """Card lint: every rule a deck must satisfy, reported one line per problem.
 
-Works on raw lines so that a malformed file still gets a full report.
+Works on raw lines so that a malformed file still gets a full report. `line_problems` is the
+per-card contract and is also what `Deck.load` enforces, so a deck that loads is a deck that
+lints clean at the card level.
 """
 from __future__ import annotations
 
@@ -8,13 +10,56 @@ from collections import defaultdict
 from itertools import combinations
 from pathlib import Path
 
-from .code_table import CODE, COLUMNS, INVERSE, LAYOUT, SOURCES, slice_of
+from .code_table import CODE, COLUMNS, INVERSE, LAYOUT, RELATIONS, SOURCES, slice_of
 
 JACCARD_LIMIT = 0.5
 
 
 def _field(line: str, name: str) -> str:
     return line[slice_of(name)].rstrip(" ")
+
+
+def read_lines(path: str | Path) -> list[str]:
+    """Read a deck file strictly: UTF-8, LF only, no trailing-newline ambiguity."""
+    text = Path(path).read_bytes().decode("utf-8")
+    if "\r" in text:
+        raise ValueError("deck file contains carriage returns; cards must be LF-terminated")
+    lines = text.split("\n")
+    if lines and lines[-1] == "":
+        lines.pop()
+    return lines
+
+
+def line_problems(line: str) -> list[str]:
+    """Card-level rules for one 80-column line (no cross-card checks)."""
+    problems: list[str] = []
+    if len(line) != COLUMNS:
+        return [f"{len(line)} characters, a card has {COLUMNS} columns"]
+    bad = sorted({c for c in line if c not in CODE})
+    if bad:
+        problems.append(f"characters outside the IBM 029 set: {bad}")
+    s, r, o = _field(line, "subject"), _field(line, "relation"), _field(line, "object")
+    for name, value in (("subject", s), ("relation", r), ("object", o)):
+        a, b = LAYOUT[name]
+        if not value:
+            problems.append(f"empty {name}")
+        elif line[a - 1] == " ":
+            problems.append(f"{name} starts with a blank column")
+        if line[b - 1] != " ":
+            problems.append(f"{name} fills every column of its field, check for truncation")
+    if s and o and s == o:
+        problems.append(f"card relates {s} to itself")
+    if r and r not in INVERSE:
+        problems.append(f"relation {r!r} is not in the vocabulary")
+    src = _field(line, "source")
+    if src not in SOURCES:
+        problems.append(f"source code {src!r} is not one of {sorted(SOURCES)}")
+    if line[slice_of("reserved")].strip():
+        problems.append("columns 64-72 must be blank")
+    seq = line[slice_of("sequence")]
+    if not seq.isdigit():
+        problems.append(f"sequence {seq!r} is not 8 digits")
+    return problems
 
 
 def lint_lines(lines: list[str], jaccard_limit: float = JACCARD_LIMIT) -> list[str]:
@@ -24,39 +69,45 @@ def lint_lines(lines: list[str], jaccard_limit: float = JACCARD_LIMIT) -> list[s
 
     triples: list[tuple[str, str, str]] = []
     seqs: list[int] = []
+    good: list[tuple[int, str]] = []
     for n, line in enumerate(lines, start=1):
+        ps = line_problems(line)
+        problems.extend(f"line {n}: {p}" for p in ps)
         if len(line) != COLUMNS:
-            problems.append(f"line {n}: {len(line)} characters, a card has {COLUMNS} columns")
             continue
-        bad = sorted({c for c in line if c not in CODE})
-        if bad:
-            problems.append(f"line {n}: characters outside the IBM 029 set: {bad}")
         s, r, o = _field(line, "subject"), _field(line, "relation"), _field(line, "object")
-        for name, value in (("subject", s), ("relation", r), ("object", o)):
-            if not value:
-                problems.append(f"line {n}: empty {name}")
-            a, b = LAYOUT[name]
-            if line[b - 1] != " ":
-                problems.append(f"line {n}: {name} fills every column of its field, check for truncation")
-        if r and r not in INVERSE:
-            problems.append(f"line {n}: relation {r!r} is not in the vocabulary")
-        src = _field(line, "source")
-        if src not in SOURCES:
-            problems.append(f"line {n}: source code {src!r} is not one of {sorted(SOURCES)}")
-        if line[slice_of("reserved")].strip():
-            problems.append(f"line {n}: columns 64-72 must be blank")
         seq = line[slice_of("sequence")]
-        if not seq.isdigit():
-            problems.append(f"line {n}: sequence {seq!r} is not 8 digits")
-        else:
+        if seq.isdigit():
             seqs.append(int(seq))
         if s and r and o:
             triples.append((s, r, o))
+        if not ps:
+            good.append((n, line))
 
     if len(set(seqs)) != len(seqs):
         problems.append("sequence numbers are not unique")
     if seqs != sorted(seqs):
         problems.append("sequence numbers are not ascending")
+
+    # Pairing: card 2k-1 is a forward fact, card 2k is its mirror with the next sequence number.
+    if len(lines) % 2:
+        problems.append("odd number of cards: every fact needs its inverse card")
+    for i in range(0, len(lines) - 1, 2):
+        a, b = lines[i], lines[i + 1]
+        if len(a) != COLUMNS or len(b) != COLUMNS:
+            continue
+        ra = _field(a, "relation")
+        if ra and ra not in RELATIONS:
+            problems.append(f"line {i + 1}: forward card carries inverse relation {ra!r}")
+            continue
+        if ra in RELATIONS:
+            expect = (_field(a, "object"), RELATIONS[ra], _field(a, "subject"), _field(a, "source"))
+            got = (_field(b, "subject"), _field(b, "relation"), _field(b, "object"), _field(b, "source"))
+            if expect != got:
+                problems.append(f"line {i + 2}: not the mirror of line {i + 1}")
+            sa, sb = a[slice_of("sequence")], b[slice_of("sequence")]
+            if sa.isdigit() and sb.isdigit() and int(sb) != int(sa) + 1:
+                problems.append(f"line {i + 2}: sequence should be {int(sa) + 1:08d}")
 
     tset = set(triples)
     if len(tset) != len(triples):
@@ -85,7 +136,8 @@ def lint_lines(lines: list[str], jaccard_limit: float = JACCARD_LIMIT) -> list[s
 
 
 def lint_file(path: str | Path) -> list[str]:
-    lines = Path(path).read_text(encoding="utf-8").split("\n")
-    if lines and lines[-1] == "":
-        lines.pop()
+    try:
+        lines = read_lines(path)
+    except ValueError as e:
+        return [str(e)]
     return lint_lines(lines)

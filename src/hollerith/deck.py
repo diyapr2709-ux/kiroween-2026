@@ -11,8 +11,9 @@ import bisect
 from dataclasses import dataclass
 from pathlib import Path
 
-from .code_table import INVERSE, SOURCES, slice_of, width
+from .code_table import INVERSE, RELATIONS, SOURCES, slice_of, width
 from .hollerith_code import Card, CardEncodingError, punch_fields
+from .lint import line_problems, read_lines
 
 
 class DeckError(ValueError):
@@ -29,12 +30,15 @@ class Fact:
 
     @classmethod
     def from_card(cls, card: Card) -> "Fact":
+        seq = card.text[slice_of("sequence")]
+        if not seq.isdigit():
+            raise DeckError(f"sequence {seq!r} is not 8 digits")
         return cls(
             subject=card.field("subject"),
             relation=card.field("relation"),
             object=card.field("object"),
             source=card.field("source"),
-            sequence=int(card.text[slice_of("sequence")]),
+            sequence=int(seq),
         )
 
     def triple(self) -> tuple[str, str, str]:
@@ -48,19 +52,21 @@ class Deck:
     # ---- persistence -------------------------------------------------------------
     @classmethod
     def load(cls, path: str | Path) -> "Deck":
-        lines = Path(path).read_text(encoding="utf-8").split("\n")
-        if lines and lines[-1] == "":
-            lines.pop()
+        """Load a deck, enforcing the card-level layout rules on every line."""
+        try:
+            lines = read_lines(path)
+        except ValueError as e:
+            raise DeckError(f"{path}: {e}") from None
         cards = []
         for n, line in enumerate(lines, start=1):
-            try:
-                cards.append(Card(line))
-            except CardEncodingError as e:
-                raise DeckError(f"{path}:{n}: {e}") from None
+            problems = line_problems(line)
+            if problems:
+                raise DeckError(f"{path}:{n}: " + "; ".join(problems))
+            cards.append(Card(line))
         return cls(cards)
 
     def save(self, path: str | Path) -> None:
-        Path(path).write_text("".join(c.text + "\n" for c in self._cards), encoding="utf-8")
+        Path(path).write_bytes("".join(c.text + "\n" for c in self._cards).encode("utf-8"))
 
     # ---- reading -----------------------------------------------------------------
     @property
@@ -90,7 +96,7 @@ class Deck:
     def _sorter_pass(self, field: str, key: str) -> list[Card]:
         """Simulated IBM 082 sorter: order the deck on one field, pull the matching run."""
         sl = slice_of(field)
-        padded = key.upper().ljust(width(field))
+        padded = key.strip().upper().ljust(width(field))
         ordered = sorted(self._cards, key=lambda c: c.text[sl])
         keys = [c.text[sl] for c in ordered]
         lo = bisect.bisect_left(keys, padded)
@@ -106,15 +112,11 @@ class Deck:
         return sorted((Fact.from_card(c) for c in run), key=lambda f: f.sequence)
 
     def find(self, subject: str | None = None, relation: str | None = None, object: str | None = None) -> list[Fact]:
+        want = {k: v.strip().upper() for k, v in (("subject", subject), ("relation", relation), ("object", object)) if v is not None}
         out = []
         for c in self._cards:
-            if subject is not None and c.field("subject") != subject.upper():
-                continue
-            if relation is not None and c.field("relation") != relation.upper():
-                continue
-            if object is not None and c.field("object") != object.upper():
-                continue
-            out.append(Fact.from_card(c))
+            if all(c.field(k) == v for k, v in want.items()):
+                out.append(Fact.from_card(c))
         return out
 
     def has_entity(self, entity: str) -> bool:
@@ -127,21 +129,29 @@ class Deck:
         return max(int(c.text[slice_of("sequence")]) for c in self._cards) + 1
 
     def punch(self, subject: str, relation: str, object: str, source: str) -> tuple[Card, Card]:
-        """Append a fact and its inverse as two cards with consecutive sequence numbers."""
-        rel = relation.upper()
-        if rel not in INVERSE:
-            raise DeckError(f"relation {relation!r} is not in the vocabulary: {sorted(INVERSE)}")
-        src = source.upper()
+        """Append a forward fact and its inverse as two cards with consecutive sequence numbers."""
+        s, o = subject.strip().upper(), object.strip().upper()
+        rel, src = relation.strip().upper(), source.strip().upper()
+        if not s or not o:
+            raise DeckError("subject and object must not be empty")
+        if rel in RELATIONS:
+            pass
+        elif rel in INVERSE:
+            raise DeckError(
+                f"{rel!r} is an inverse relation; punch the forward fact instead: ({o}, {INVERSE[rel]}, {s})"
+            )
+        else:
+            raise DeckError(f"relation {relation!r} is not in the vocabulary: {sorted(RELATIONS)}")
         if src not in SOURCES:
             raise DeckError(f"source {source!r} is not an allowed code: {sorted(SOURCES)}")
-        if subject.upper() == object.upper():
+        if s == o:
             raise DeckError("a fact cannot relate an entity to itself")
-        if self.find(subject, rel, object):
-            raise DeckError(f"duplicate fact ({subject}, {rel}, {object})")
+        if self.find(s, rel, o):
+            raise DeckError(f"duplicate fact ({s}, {rel}, {o})")
         seq = self.next_sequence()
         try:
-            fwd = punch_fields(subject, rel, object, src, seq)
-            inv = punch_fields(object, INVERSE[rel], subject, src, seq + 1)
+            fwd = punch_fields(s, rel, o, src, seq)
+            inv = punch_fields(o, RELATIONS[rel], s, src, seq + 1)
         except CardEncodingError as e:
             raise DeckError(str(e)) from None
         self._cards.extend([fwd, inv])

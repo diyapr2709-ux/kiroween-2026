@@ -7,21 +7,29 @@ import pytest
 from hollerith import CODE, INVERSE, LAYOUT, RELATIONS, SOURCES
 from hollerith.code_table import PATTERN_TO_CHAR, ROWS, width
 
-KNOWN = {
-    "0": {"0"}, "9": {"9"},
-    "A": {"12", "1"}, "I": {"12", "9"},
-    "J": {"11", "1"}, "R": {"11", "9"},
-    "S": {"0", "2"}, "Z": {"0", "9"},
+REPO = Path(__file__).resolve().parents[1]
+
+# Every one of the 61 characters, pinned independently of the generator in code_table.py.
+KNOWN: dict[str, set[str]] = {str(d): {str(d)} for d in range(10)}
+KNOWN.update({ch: {"12", str(i)} for i, ch in enumerate("ABCDEFGHI", start=1)})
+KNOWN.update({ch: {"11", str(i)} for i, ch in enumerate("JKLMNOPQR", start=1)})
+KNOWN.update({ch: {"0", str(i)} for i, ch in enumerate("STUVWXYZ", start=2)})
+KNOWN.update({
     " ": set(), "&": {"12"}, "-": {"11"}, "/": {"0", "1"},
-    ".": {"12", "8", "3"}, "$": {"11", "8", "3"}, ",": {"0", "8", "3"},
-    "#": {"8", "3"}, "@": {"8", "4"}, "'": {"8", "5"}, "=": {"8", "6"}, '"': {"8", "7"},
-    "(": {"12", "8", "5"}, ")": {"11", "8", "5"}, "+": {"12", "8", "6"}, "*": {"11", "8", "4"},
-}
+    ".": {"12", "8", "3"}, "<": {"12", "8", "4"}, "(": {"12", "8", "5"}, "+": {"12", "8", "6"}, "|": {"12", "8", "7"},
+    "$": {"11", "8", "3"}, "*": {"11", "8", "4"}, ")": {"11", "8", "5"}, ";": {"11", "8", "6"}, "¬": {"11", "8", "7"},
+    ",": {"0", "8", "3"}, "%": {"0", "8", "4"}, "_": {"0", "8", "5"}, ">": {"0", "8", "6"}, "?": {"0", "8", "7"},
+    ":": {"8", "2"}, "#": {"8", "3"}, "@": {"8", "4"}, "'": {"8", "5"}, "=": {"8", "6"}, '"': {"8", "7"},
+})
 
 
 @pytest.mark.parametrize("ch,rows", sorted(KNOWN.items()))
 def test_known_assignments(ch: str, rows: set[str]) -> None:
     assert CODE[ch] == frozenset(rows)
+
+
+def test_known_table_is_complete() -> None:
+    assert set(KNOWN) == set(CODE)
 
 
 def test_alphabet_size() -> None:
@@ -69,12 +77,16 @@ def test_sources_fit_their_field() -> None:
 
 
 def test_steering_doc_agrees_if_present() -> None:
-    """If Kiro's steering doc exists, every relation and source it names must be in the table."""
-    doc = Path(".kiro/steering/hollerith.md")
+    """If Kiro's steering doc exists, it must name every relation, source and hole pattern."""
+    doc = REPO / ".kiro" / "steering" / "hollerith.md"
     if not doc.exists():
-        pytest.skip("steering doc not written yet")
+        pytest.skip("steering doc not written yet (Kiro's Loop 1 task)")
     text = doc.read_text(encoding="utf-8")
     for r in INVERSE:
-        assert r in text, f"steering doc does not mention relation {r}"
+        assert re.search(rf"(?<![A-Z]){re.escape(r)}(?![A-Z])", text), f"steering doc does not mention relation {r}"
     for s in SOURCES:
-        assert s in text, f"steering doc does not mention source {s}"
+        assert re.search(rf"(?<![A-Z]){re.escape(s)}(?![A-Z])", text), f"steering doc does not mention source {s}"
+    # Hole patterns: the doc must contain each character's rows in the form "12-8-3" (or "none").
+    for ch, pattern in CODE.items():
+        rows = "-".join(sorted(pattern, key=ROWS.index)) if pattern else "none"
+        assert rows in text, f"steering doc lacks the hole pattern {rows} for {ch!r}"

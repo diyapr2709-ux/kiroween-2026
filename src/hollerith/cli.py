@@ -1,4 +1,8 @@
-"""`hollerith` command line: lint, decode, punch, show, neighbours."""
+"""`hollerith` command line: lint, decode, punch, show, neighbours.
+
+Exit codes: 0 ok · 1 the deck/query has a problem (lint failures, NO CARDS, bad input)
+· 2 the deck could not be read at all. Hooks rely on these.
+"""
 from __future__ import annotations
 
 import argparse
@@ -34,7 +38,7 @@ def cmd_lint(args: argparse.Namespace) -> int:
 
 def cmd_decode(args: argparse.Namespace) -> int:
     try:
-        card = Card(args.line) if len(args.line) == 80 else encode(args.line)
+        card = encode(args.line)
     except CardEncodingError as e:
         print(f"error: {e}", file=sys.stderr)
         return 1
@@ -84,11 +88,11 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("deck", nargs="?", default=DEFAULT_DECK)
     p.set_defaults(fn=cmd_lint)
 
-    p = sub.add_parser("decode", help="show the holes for an 80-column line or any short text")
+    p = sub.add_parser("decode", help="show the holes for up to 80 characters of text")
     p.add_argument("line")
     p.set_defaults(fn=cmd_decode)
 
-    p = sub.add_parser("punch", help="append a fact and its inverse to the deck")
+    p = sub.add_parser("punch", help="append a forward fact and its inverse to the deck")
     p.add_argument("subject")
     p.add_argument("relation")
     p.add_argument("object")
@@ -109,7 +113,7 @@ def main(argv: list[str] | None = None) -> int:
     args = ap.parse_args(argv)
     try:
         return args.fn(args)
-    except DeckError as e:
+    except (DeckError, OSError) as e:
         print(f"error: {e}", file=sys.stderr)
         return 2
 

@@ -104,7 +104,9 @@ def punch_fields(subject: str, relation: str, object_: str, source: str, sequenc
                 raise CardEncodingError(f"sequence {sequence} does not fit in {w} digits")
             value = f"{sequence:0{w}d}"
         else:
-            value = normalise(parts[name])
+            value = normalise(parts[name].strip())
+            if not value:
+                raise CardEncodingError(f"{name} must not be empty")
             if len(value) > w:
                 raise CardEncodingError(f"{name} {value!r} is {len(value)} characters; field is {w} columns")
         text += value.ljust(w)
