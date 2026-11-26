@@ -4,17 +4,26 @@ Every number here has the command that regenerates it. Protocol: [ADR-001 §4](A
 Statistics: `docs/arena/checks/stats.py` (corrected 2026-11-26 after the Loop 2 review — see §"Statistics
 correction"). Deck: `data/cards.deck`, 196 facts / 392 cards, committed before any split existed.
 
-## Headline (honest)
+## Headline (honest; final wording awaits the RL rows — eval-scientist)
 
-**On the pre-registered set of 144 multi-hop-testable facts (288 queries, reachability ceiling 40.3 %),
-the supervised walker reaches Hits@1 0.073 ± 0.007 against a frequency baseline of 0.035 — higher in
-every seed (Δ +0.031 / +0.045 / +0.038), but the difference does not meet the pre-registered significance
-bar** (fact-clustered 95 % CI [−0.001, +0.080]; per-seed McNemar p = 0.136 / 0.029 / 0.061 vs α = 0.025).
+**The pre-registered criterion was not met.** On the pre-registered set of 144 multi-hop-testable facts
+(288 queries, reachability ceiling 40.3 %), the supervised walker reaches Hits@1 0.073 against a frequency
+baseline of 0.035 (seed-to-seed sd 0.007 — optimiser noise, not the uncertainty of the estimate). The
+difference is positive in every seed (Δ +0.031 / +0.045 / +0.038) but fails the test under every reading:
+fact-clustered 95 % CI [−0.001, +0.080]; per-seed McNemar p = 0.136 / 0.029 / 0.061 vs α = 0.025;
+seed-majority McNemar p = 0.12. RL is reported alongside under Holm once its re-run completes.
 Every narrated answer cites the cards on its path (faithfulness 657/657).
 
-What we do **not** claim: that the walker beats an LLM, embeddings, or "reasons"; that it generalises
-beyond this deck; that its numbers are comparable to published MINERVA/Lin results; that narrated
-answers are factually correct — they are *grounded*, and 33 % of pulled-card answers are grounded and wrong.
+**Disclosure — choice of T.** The ADR said "T likely 3". T = 4 was fixed *after* measuring the universe's
+reachability at T = 3 / 4 / 5 (34.7 / 40.3 / 43.8 %) — a structural measurement with no model involved and
+before any training — and *before* any policy result was seen. It was not changed afterwards.
+
+What we do **not** claim or say: that the result is "significant", "near-significant" or "trending"; that any
+single seed passes (seed 1's p = 0.029 does not clear α = 0.025 either); that the walker beats an LLM or
+embeddings, "reasons", or "learned to reason"; that it generalises beyond this deck; that its numbers are
+comparable to published MINERVA/Lin results; that narrated answers are factually correct — they are *grounded*,
+and 33 % of pulled-card answers are grounded and wrong. We did not and will not choose between RL and SL after
+seeing which passes, nor change T, the universe or the test to rescue the result.
 
 ## Pre-registered protocol (fixed 2026-11-26 before any policy existed)
 
