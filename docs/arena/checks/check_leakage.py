@@ -56,7 +56,12 @@ def main() -> int:
     if args.folds:
         d = Path(args.folds)
         for tr in sorted(d.glob("fold*.train.jsonl")):
-            pairs.append((tr, d / tr.name.replace(".train.", ".test.")))
+            val = d / tr.name.replace(".train.", ".val.")
+            if val.exists():  # the walking graph is train ∪ val, so val must be gated too
+                merged = d / tr.name.replace(".train.", ".walk.")
+                merged.write_text(tr.read_text() + val.read_text())
+                tr = merged
+            pairs.append((tr, d / tr.name.replace(".walk.", ".test.").replace(".train.", ".test.")))
     elif args.train and args.test:
         pairs.append((Path(args.train), Path(args.test)))
     else:

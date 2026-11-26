@@ -34,7 +34,7 @@ PATTERNS: list[tuple[str, str]] = [
     (r"\bwhat was .* renamed (to|as)\b|\bwhat did .* become\b", "RENAMED TO"),
     (r"\bwhat was .* (renamed from|called before|formerly)\b", "RENAMED FROM"),
     (r"\bwhat did .* merge into\b|\bwhat acquired\b", "MERGED INTO"),
-    (r"\bwhat (formed|was formed from|merged into)\b", "FORMED FROM"),
+    (r"\bwhat was .* formed from\b|\bwhat formed\b", "FORMED FROM"),
     (r"\bwhat (succeeded|replaced|came after)\b", "PRECEDED"),
     (r"\bwhat did .* (succeed|replace)\b|\bwhat (preceded|came before)\b", "SUCCEEDED"),
     (r"\bwho (did|does) .* influence\b|\bwhat did .* influence\b", "INFLUENCED"),

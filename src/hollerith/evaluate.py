@@ -2,8 +2,8 @@
 
 Filtered ranking (Lin et al.): other entities that are also true answers to (s, r, ?) anywhere
 in the full deck are removed from the candidate list before ranking the gold answer.
-Ties: the gold answer takes the MEAN rank of its tie group (pessimistic enough that a tie at
-the top is not a Hit@1). An unreached gold (no score) has rank ∞: Hits miss, MRR 0.
+Ties: the gold answer takes the MEAN rank of its tie group — the expected rank under random
+tie-breaking (neutral, not pessimistic); a tie at the top is therefore not a Hit@1. An unreached gold (no score) has rank ∞: Hits miss, MRR 0.
 
 Output: results/hits1.csv (seed, query, <system>, ...) for docs/arena/checks/stats.py, and
 results/summary.json with Hits@1/Hits@10/MRR per system (mean ± std over seeds), reachability,
@@ -79,6 +79,7 @@ def evaluate_system(system: Ranker, folds: list[Fold], deck: Deck, seeds: list[i
             for q in fold.queries:
                 qid = f"f{q.fold}-{q.fact_seq:08d}-{q.direction}"
                 scores = system.scores(q.subject, q.relation) if q.answerable else {}
+                scores.pop(q.subject, None)  # the query entity is never an answer, for every system
                 rank = filtered_rank(scores, q.gold, known.get((q.subject, q.relation), set()))
                 out.append(QueryResult(seed, qid, system.name, rank, q.reachable, q.answerable))
     return out
@@ -105,7 +106,7 @@ def summarise(results: list[QueryResult], seeds: list[int]) -> dict:
             vals = [per_seed[s][key] for s in seeds if per_seed[s][key] is not None]
             if not vals:
                 return None
-            return {"mean": statistics.fmean(vals), "std": statistics.pstdev(vals) if len(vals) > 1 else 0.0}
+            return {"mean": statistics.fmean(vals), "std": statistics.stdev(vals) if len(vals) > 1 else 0.0}
         by_sys[name] = {k: ms(k) for k in ("hits1", "hits10", "mrr", "hits1_reachable", "coverage")}
         by_sys[name]["n_queries"] = per_seed[seeds[0]]["n"]
     return by_sys

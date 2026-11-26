@@ -1,14 +1,22 @@
-"""Loop 2 statistics (ADR-001 §4): paired bootstrap CI on ΔHits@1, McNemar exact test,
-and the sign-over-seeds check. Standard library only.
+"""Loop 2 statistics (ADR-001 §4), corrected after the Loop 2 review.
 
-Input: a CSV with one row per (seed, query) and 0/1 columns for each system, e.g.
-    seed,query,policy,random_walk,frequency
-    0,Q001,1,0,1
-Exit 0 if the exit criterion holds for `--system` vs the stronger of `--baselines`, else 1.
+The unit of analysis is the QUERY (and its fact), not the (seed, query) pair: seeds are repeated
+measures of the same queries and the baselines are identical across seeds, so pooling rows
+across seeds triples the discordant counts (pseudo-replication). This script therefore:
+
+  1. averages each system's Hit@1 over seeds per query (values in {0, 1/3, 2/3, 1});
+  2. bootstraps ΔHits@1 by resampling FACTS (both directions of a fact move together);
+  3. runs McNemar's exact test PER SEED — the pre-registered criterion requires every seed to
+     pass at alpha — and also reports the test on the seed-majority vote for information;
+  4. checks that the sign of ΔHits@1 holds in every seed.
+
+Input: CSV `seed,query,<system>,...` with 0/1 cells; query ids look like `f0-00000012-fwd`, and
+the fact id is the middle field. Exit 0 iff the criterion holds for --system vs the stronger of
+--baselines (by mean Hits@1).
 
 Usage:
-  python -I docs/arena/checks/stats.py results/hits1.csv --system policy_rl \
-      --baselines random_walk,frequency --alpha 0.025 --boot 10000 --seed 0
+  python3 -I docs/arena/checks/stats.py results/hits1.csv --system policy_rl \
+      --baselines frequency,random_walk --alpha 0.025 --boot 10000 --seed 0
 """
 from __future__ import annotations
 
@@ -16,12 +24,12 @@ import argparse
 import csv
 import math
 import random
+import statistics
 import sys
 from collections import defaultdict
 
 
 def mcnemar_exact(b: int, c: int) -> float:
-    """Two-sided exact McNemar p-value for discordant counts b (A right, B wrong) and c."""
     n = b + c
     if n == 0:
         return 1.0
@@ -30,75 +38,98 @@ def mcnemar_exact(b: int, c: int) -> float:
     return min(1.0, 2 * tail)
 
 
-def bootstrap_ci(a: list[int], b: list[int], iters: int, rng: random.Random, level: float = 0.95):
-    n = len(a)
-    diffs = []
-    for _ in range(iters):
-        idx = [rng.randrange(n) for _ in range(n)]
-        diffs.append(sum(a[i] - b[i] for i in idx) / n)
-    diffs.sort()
-    lo = diffs[int((1 - level) / 2 * iters)]
-    hi = diffs[int((1 + level) / 2 * iters) - 1]
-    return lo, hi
+def fact_of(query_id: str) -> str:
+    parts = query_id.split("-")
+    return parts[1] if len(parts) >= 2 else query_id
+
+
+def load(path: str):
+    by_seed: dict[str, dict[str, dict[str, int]]] = defaultdict(lambda: defaultdict(dict))
+    with open(path, newline="", encoding="utf-8") as f:
+        for row in csv.DictReader(f):
+            for col, v in row.items():
+                if col in ("seed", "query"):
+                    continue
+                by_seed[row["seed"]][col][row["query"]] = int(v)
+    return by_seed
 
 
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("csv")
     ap.add_argument("--system", required=True)
-    ap.add_argument("--baselines", required=True, help="comma-separated columns")
-    ap.add_argument("--alpha", type=float, default=0.025, help="Holm-corrected per-mode alpha")
+    ap.add_argument("--baselines", required=True)
+    ap.add_argument("--alpha", type=float, default=0.025)
     ap.add_argument("--boot", type=int, default=10_000)
     ap.add_argument("--seed", type=int, default=0)
     args = ap.parse_args()
     rng = random.Random(args.seed)
 
-    by_seed: dict[str, dict[str, dict[str, int]]] = defaultdict(lambda: defaultdict(dict))
-    with open(args.csv, newline="", encoding="utf-8") as f:
-        for row in csv.DictReader(f):
-            for col, v in row.items():
-                if col in ("seed", "query"):
-                    continue
-                by_seed[row["seed"]][col][row["query"]] = int(v)
+    by_seed = load(args.csv)
     seeds = sorted(by_seed)
     systems = sorted({c for s in seeds for c in by_seed[s]})
-    print(f"seeds: {seeds}; systems: {systems}")
+    queries = sorted(by_seed[seeds[0]][args.system])
+    print(f"seeds: {seeds}; systems: {systems}; queries: {len(queries)}")
 
-    def mean_hits(col: str) -> float:
-        vals = [by_seed[s][col][q] for s in seeds for q in by_seed[s][col]]
-        return sum(vals) / len(vals)
+    def per_seed_hits(col: str) -> list[float]:
+        return [statistics.fmean(by_seed[s][col].values()) for s in seeds]
 
-    def per_seed(col: str) -> list[float]:
-        return [sum(by_seed[s][col].values()) / len(by_seed[s][col]) for s in seeds]
+    def query_mean(col: str) -> dict[str, float]:
+        return {q: statistics.fmean(by_seed[s][col][q] for s in seeds) for q in queries}
+
+    for col in systems:
+        ps = per_seed_hits(col)
+        sd = statistics.stdev(ps) if len(ps) > 1 else 0.0
+        print(f"  {col:18} Hits@1 {statistics.fmean(ps):.3f} ± {sd:.3f} (sample sd over {len(ps)} seeds)")
 
     baselines = args.baselines.split(",")
-    strongest = max(baselines, key=mean_hits)
-    print(f"strongest baseline: {strongest} (Hits@1 {mean_hits(strongest):.3f})")
-    for col in systems:
-        ps = per_seed(col)
-        mu = sum(ps) / len(ps)
-        sd = (sum((p - mu) ** 2 for p in ps) / max(1, len(ps) - 1)) ** 0.5
-        print(f"  {col:16} Hits@1 {mu:.3f} ± {sd:.3f} (over {len(ps)} seeds)")
+    strongest = max(baselines, key=lambda c: statistics.fmean(per_seed_hits(c)))
+    print(f"strongest baseline: {strongest}")
 
-    # Paired over (seed, query): pool all seeds; the pairing is query-wise within seed.
-    a, b = [], []
+    sys_q, base_q = query_mean(args.system), query_mean(strongest)
+    delta = statistics.fmean(sys_q[q] - base_q[q] for q in queries)
+
+    # Fact-clustered paired bootstrap on seed-averaged per-query hits.
+    facts: dict[str, list[str]] = defaultdict(list)
+    for q in queries:
+        facts[fact_of(q)].append(q)
+    fact_ids = sorted(facts)
+    diffs = []
+    for _ in range(args.boot):
+        sample = [fact_ids[rng.randrange(len(fact_ids))] for _ in fact_ids]
+        num = den = 0.0
+        for fid in sample:
+            for q in facts[fid]:
+                num += sys_q[q] - base_q[q]
+                den += 1
+        diffs.append(num / den)
+    diffs.sort()
+    lo, hi = diffs[int(0.025 * args.boot)], diffs[int(0.975 * args.boot) - 1]
+
+    # McNemar per seed (criterion) and on the seed-majority vote (information).
+    per_seed_p = []
     for s in seeds:
-        for q in sorted(by_seed[s][args.system]):
-            a.append(by_seed[s][args.system][q])
-            b.append(by_seed[s][strongest][q])
-    delta = (sum(a) - sum(b)) / len(a)
-    lo, hi = bootstrap_ci(a, b, args.boot, rng)
-    bc = sum(1 for x, y in zip(a, b) if x == 1 and y == 0)
-    cb = sum(1 for x, y in zip(a, b) if x == 0 and y == 1)
-    p = mcnemar_exact(bc, cb)
-    signs = [ps_sys - ps_base for ps_sys, ps_base in zip(per_seed(args.system), per_seed(strongest))]
+        b = sum(1 for q in queries if by_seed[s][args.system][q] == 1 and by_seed[s][strongest][q] == 0)
+        c = sum(1 for q in queries if by_seed[s][args.system][q] == 0 and by_seed[s][strongest][q] == 1)
+        per_seed_p.append((s, b, c, mcnemar_exact(b, c)))
+    maj = {q: int(sys_q[q] > 0.5) for q in queries}
+    bmaj = {q: int(base_q[q] > 0.5) for q in queries}
+    b_m = sum(1 for q in queries if maj[q] and not bmaj[q])
+    c_m = sum(1 for q in queries if not maj[q] and bmaj[q])
+    p_maj = mcnemar_exact(b_m, c_m)
+
+    signs = [a - b for a, b in zip(per_seed_hits(args.system), per_seed_hits(strongest))]
     sign_ok = all(d > 0 for d in signs)
 
-    print(f"ΔHits@1 ({args.system} − {strongest}) = {delta:+.3f}  95% bootstrap CI [{lo:+.3f}, {hi:+.3f}]  n={len(a)}")
-    print(f"McNemar exact: b={bc} c={cb} p={p:.4g} (alpha {args.alpha})")
-    print(f"sign holds in all seeds: {sign_ok} ({['%+.3f' % d for d in signs]})")
-    ok = lo > 0 and p < args.alpha and sign_ok
-    print("EXIT CRITERION:", "PASS" if ok else "FAIL")
+    print(f"ΔHits@1 ({args.system} − {strongest}) = {delta:+.3f}   95% fact-clustered bootstrap CI [{lo:+.3f}, {hi:+.3f}]   "
+          f"facts={len(fact_ids)} queries={len(queries)}")
+    for s, b, c, p in per_seed_p:
+        print(f"McNemar exact, seed {s}: b={b} c={c} p={p:.4g}  {'pass' if p < args.alpha else 'FAIL'} (alpha {args.alpha})")
+    print(f"McNemar on seed-majority vote (information only): b={b_m} c={c_m} p={p_maj:.4g}")
+    print(f"sign of Δ in every seed: {sign_ok} ({['%+.3f' % d for d in signs]})")
+    ok = lo > 0 and all(p < args.alpha for _, _, _, p in per_seed_p) and sign_ok
+    print("EXIT CRITERION:", "PASS" if ok else "FAIL",
+          "(CI excludes 0 AND every per-seed McNemar p < alpha AND sign in every seed)")
     return 0 if ok else 1
 
 

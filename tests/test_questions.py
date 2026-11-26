@@ -33,7 +33,7 @@ def test_every_card_question_round_trips_through_the_parser(deck) -> None:
 
 def test_title_case_keeps_acronyms_and_suffixes(deck) -> None:
     f = deck.find(subject="THOMAS J. WATSON SR", relation="LED")[0]
-    assert question_for(f) == "What did Thomas J. Watson SR lead?"
+    assert question_for(f) == "What did Thomas J. Watson Sr lead?"
     f = deck.find(subject="IBM", relation="BUILT")[0]
     assert question_for(f) == "What did IBM build?"
     f = deck.find(subject="UNIV OF MANCHESTER", relation="BUILT")[0]

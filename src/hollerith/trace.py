@@ -61,7 +61,7 @@ def train_full(deck: Deck, mode: str = "sl", seed: int = 0, epochs: int = 40, ho
     """Train the product walker on every card of the deck (no held-out facts)."""
     from .graph import forward_facts
     g = Graph.from_deck(deck)
-    p = Policy(mode=mode, hops=hops, epochs=epochs)
+    p = Policy(mode=mode, hops=hops, epochs=epochs, simple_paths=True)  # product walker: no oscillation
     p.fit(g, forward_facts(deck), [], seed)
     return p
 
@@ -70,13 +70,14 @@ def save_model(p: Policy, path: str | Path) -> None:
     Path(path).parent.mkdir(parents=True, exist_ok=True)
     chains = {r: sorted(list(c) for c in cs) for r, cs in p.known_chains.items()}
     np.savez(path, R=p.R, E=p.E, rels=np.array(p.rels), ents=np.array(p.ents),
-             meta=np.array(json.dumps({"mode": p.mode, "hops": p.hops, "dim": p.dim, "beam": p.beam, "chains": chains})))
+             meta=np.array(json.dumps({"mode": p.mode, "hops": p.hops, "dim": p.dim, "beam": p.beam, "chains": chains, "simple_paths": p.simple_paths})))
 
 
 def load_model(path: str | Path, deck: Deck) -> Policy:
     z = np.load(path, allow_pickle=False)
     meta = json.loads(str(z["meta"]))
-    p = Policy(mode=meta["mode"], hops=meta["hops"], dim=meta["dim"], beam=meta["beam"], epochs=0)
+    p = Policy(mode=meta["mode"], hops=meta["hops"], dim=meta["dim"], beam=meta["beam"], epochs=0,
+               simple_paths=meta.get("simple_paths", False))
     p._init(Graph.from_deck(deck), [str(e) for e in z["ents"]], seed=0)
     p.rels = [str(r) for r in z["rels"]]
     p.ridx = {r: i for i, r in enumerate(p.rels)}

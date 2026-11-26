@@ -45,13 +45,17 @@ class WalkResult:
 class Policy(Ranker):
     def __init__(self, mode: str = "rl", hops: int = 4, dim: int = 32, epochs: int = 40, rollouts: int = 20,
                  lr: float = 0.05, entropy: float = 0.02, action_dropout: float = 0.1, beam: int = 64,
-                 baseline_decay: float = 0.9, verbose: bool = False) -> None:
+                 baseline_decay: float = 0.9, verbose: bool = False, simple_paths: bool = False) -> None:
         if mode not in ("rl", "sl"):
             raise ValueError("mode must be 'rl' or 'sl'")
         self.mode, self.hops, self.dim, self.epochs, self.rollouts = mode, hops, dim, epochs, rollouts
         self.lr, self.entropy, self.action_dropout, self.beam = lr, entropy, action_dropout, beam
         self.baseline_decay, self.verbose = baseline_decay, verbose
-        self.name = f"policy_{mode}"
+        # simple_paths=True forbids revisiting an entity (no A->B->A oscillation). It is OFF for the
+        # pre-registered evaluation (the walker as first evaluated) and ON for the product walker;
+        # the evaluation with it ON is reported as an ablation (results.md).
+        self.simple_paths = simple_paths
+        self.name = f"policy_{mode}" + ("_simple" if simple_paths else "")
         self.history: list[dict] = []
         # query relation -> set of relation chains that reached the gold answer during training.
         # A product-side plausibility filter (trace.py), not part of the evaluation ranking.
@@ -79,7 +83,7 @@ class Policy(Ranker):
 
         Walks are simple paths: inverse cards would otherwise let the walker oscillate A->B->A.
         """
-        visited = visited or set()
+        visited = (visited or set()) if self.simple_paths else set()
         acts: list[Fact | None] = [f for f in self.g.edges(e) if f.triple() not in masked and f.object not in visited]
         acts.append(NOOP_FACT)
         return acts

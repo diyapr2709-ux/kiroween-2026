@@ -99,8 +99,9 @@ def cmd_eval(args: argparse.Namespace) -> int:
     for name in args.systems.split(","):
         if name in BASELINES:
             systems[name] = BASELINES[name](args.hops) if name == "random_walk" else BASELINES[name]()
-        elif name in ("policy_rl", "policy_sl"):
-            systems[name] = Policy(mode=name[-2:], hops=args.hops, epochs=args.epochs, verbose=args.verbose)
+        elif name in ("policy_rl", "policy_sl", "policy_rl_simple", "policy_sl_simple"):
+            systems[name] = Policy(mode=name.split("_")[1], hops=args.hops, epochs=args.epochs, verbose=args.verbose,
+                                   simple_paths=name.endswith("_simple"))
         else:
             print(f"error: unknown system {name!r}; known: {sorted(BASELINES) + ['policy_rl', 'policy_sl']}", file=sys.stderr)
             return 1

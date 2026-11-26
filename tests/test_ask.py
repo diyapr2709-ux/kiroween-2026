@@ -152,7 +152,7 @@ def test_pulled_one_card_answer_is_narrated_as_inferred(deck, policy) -> None:
     t = ask("Who founded the Tabulating Machine Company?", deck, policy, pulled=[2])
     assert t.mode == "walk"
     if t.status == "answered":
-        assert "read directly" not in t.narration and "inferred" in t.narration
+        assert "inferred, not read directly" in t.narration
     else:
         assert "JAM:" in t.narration
 
