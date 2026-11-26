@@ -167,4 +167,6 @@ RL v1 (3 seeds, 13 min): policy_rl 0.072 ± 0.002 — same as SL; RL vs SL paire
 **Honest Loop 2 result (corrected):** policy_sl 0.073 ± 0.007 vs frequency 0.035; Δ +0.038, sign 3/3, CI [−0.001, +0.080], per-seed p 0.136/0.029/0.061 → **does not meet the pre-registered bar**. [results.md](results.md) rewritten with this headline. RL re-run under the corrected evaluator in progress (background, ~13 min).
 **Product numbers:** faithfulness 657/657 = 100 %; pull-a-card over 392 cards: recovered 34 %, jam 19 %, grounded-but-wrong 33 %, no cards 14 %.
 
+**`eval-scientist` on the revised headline (20:40):** wording accepted with fixes — lead with "criterion not met"; ± is seed sd (optimiser noise), the CI is the uncertainty; publish only with RL rows under Holm; **disclose that T=4 followed the reachability sweep** (structural, pre-training). Keep per-seed all-must-pass McNemar (conservative reading; majority vote would be a forking path and fails anyway, p=0.12); the fact-clustered bootstrap is the more valid test and fails too → "fails under every reading". Must-not additions recorded in results.md and ADR §4. All applied; spec-input-2 (Kiro web reader) written and pushed; challenger #1 spawned.
+
 **Hours used:** ~5.0 h of 12. **Hours left:** ~7.0.
