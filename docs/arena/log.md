@@ -131,4 +131,18 @@ Report and fixes in [loop-1-findings.md](loop-1-findings.md). Fixes committed as
 - Fresh clone at `c435787` (reviewer): green.
 **Loop 1 status: Claude Code's half closed; Kiro's half (spec-input-1 v2 groups A/B/C) not started.** Exit criteria still open: steering test un-skips and passes; hooks fire; MCP server answers; ≥5 Kiro-punched cards lint-clean.
 
-**Hours used:** ~2.0 h of the 12 h build budget (Loop 1 core + review fixes). **Hours left:** ~10.0.
+### 2026-11-26 18:20 — Loop 2 evaluation infrastructure built (Claude Code); first honest numbers; reachability finding
+Rationale for building this before Diya's who-builds-the-policy decision: the measuring stick belongs to the validator regardless of who builds the thing measured; it duplicates nothing either way. Commit `a743536`.
+Built: `graph.py` (view over cards, BFS), `split.py` (5-fold by fact, both directions, same-pair exclusion, val slice, reachability + answerability per query, `assert_no_leakage`, JSONL in the harness format), `baselines.py` (`Ranker` interface; exact random walk = row of Pᵀ over out-cards + NO_OP; frequency), `evaluate.py` (filtered ranking, mean-rank ties, rank ∞ when unreached, Hits@1/10, MRR, reachable-subset Hits@1, coverage, `hits1.csv` + `summary.json` with the regenerating command), CLI `split`/`eval`, 12 tests. `numpy` added.
+**Verification:** `uv run pytest -q` → **172 passed, 1 skipped**. `uv run hollerith split` → 392 queries, excluded_facts 4. `python3 -I docs/arena/checks/check_leakage.py --folds splits` → 0 leaks in 5 folds. `uv run hollerith eval --systems random_walk,frequency --seeds 0,1,2` (0.25 s):
+
+| system | Hits@1 | Hits@10 | MRR | Hits@1 (reachable) | coverage |
+|---|---|---|---|---|---|
+| frequency | 0.020 ± 0.000 | 0.158 ± 0.000 | 0.055 ± 0.000 | 0.011 | 0.191 |
+| random_walk | 0.000 ± 0.000 | 0.179 ± 0.000 | 0.036 ± 0.000 | 0.000 | 0.235 |
+
+`stats.py frequency vs random_walk`: Δ=+0.020, 95 % CI [+0.013, +0.029], McNemar p=1.2e-7, sign in 3/3 → the harness's PASS/FAIL logic works on real output.
+
+**FINDING L2-F1 (major, structural): reachability ceiling 23.5 %.** Only 92/392 gold answers are within 3 hops of the training graph; 77 % of query entities exist in train. Hops sweep: T=3 23.5 %, 4 27.6 %, 5 29.1 %, 6 30.6 %, 8 36.7 %. Cause: 53/151 entities (35 %) are degree-1 leaves (LOCATION OF 12, BIRTHPLACE OF 8, INVENTED BY 6, BUILT BY 6 …). By relation: SUCCEEDED 56 %, WORKED AT 33 %, … LOCATED IN 5 %, BORN IN 8 %, RENAMED 0 %. **No walker can exceed 23.5 % Hits@1 overall.** Options A (report both) / B (pre-registered testable-fact universe, degree ≥ 2 both ends) / C (densify deck ~100 facts) / D (drop place relations from test) sent to `eval-scientist` (validity) and `scope-risk` (hours) for a ruling. Commands: `uv run hollerith split --hops N`; degree diagnostics script in log history.
+
+**Hours used:** ~2.75 h of 12 (Loop 1 core + fixes + Loop 2 eval infra). **Hours left:** ~9.25.
