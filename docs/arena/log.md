@@ -106,4 +106,15 @@ Still declined: writing `src/`, `tests/`, `.kiro/`. Reason unchanged — those m
 ### 2026-11-26 17:25 — Diya shares `app.kiro.dev/session` → Kiro is WEB, not desktop
 Consequence: Kiro works on a GitHub repo. Remote exists (`diyapr2709-ux/kiroween-2026`), `gh` authenticated, **zero commits**. P0 revised in ADR: first commit is `docs/arena/` + `.claude/agents/`, pushed, so Kiro's spec commits land after the arena. Awaiting Diya's go-ahead to commit and push (outward-facing action).
 
-**Hours used:** 0 build hours (Claude Code orchestration + harness only). **Hours left:** 12.
+### 2026-11-26 17:30 — Diya: "but start building out on code as well" (third time) → Loop 1 built by Claude Code
+Contract relaxed by Diya for `src/`, `tests/`, `data/`; **not** for `.kiro/`. Authorship ledger opened: [authorship.md](authorship.md). ADR §11 records the rubric consequence.
+Built: `pyproject.toml` (uv, hatchling, `hollerith` CLI), MIT `LICENSE`, `.gitignore` (does not ignore `.kiro/`), `src/hollerith/{code_table,hollerith_code,deck,lint,cli}.py`, `tests/test_{roundtrip,code_table,deck,lint}.py`, `data/cards.deck`.
+**Verification (commands and output):**
+- `uv run pytest -q` → **80 passed, 1 skipped** (skip = steering-doc agreement test; `.kiro/steering/hollerith.md` not written yet). Round-trip property test runs 10 000 hypothesis cases ×2 (text-level and exact 80-column card-level).
+- `uv run --with hypothesis python -I docs/arena/checks/check_roundtrip.py --cases 20000 --seed 7` → **20 000 cases, 0 failures**; app hole patterns equal the independent 029 table for all 61 characters; 13 invalid-input classes rejected with `CardEncodingError`.
+- Deck authored via `Deck.punch` (scratch script, not in repo): **196 facts → 392 cards, 151 entities, 24 relation names (12 pairs)**; `uv run hollerith lint` → clean. Source codes: IBMARCH for IBM-world cards, CHM for machine built/used/succeeded, WIKI otherwise — reference *families*, not page citations (Limitations).
+- `uv run hollerith neighbours "HERMAN HOLLERITH"` → 8 cards in sequence order via the sorter pass; `neighbours "ADA LOVELACE"` → `NO CARDS`, exit 1.
+- **Harness defect found and fixed:** `check_deck.py` inferred inverses from any co-occurring (s,o)/(o,s) pair and raised 4 false "more than one inverse" failures (HOLLERITH both FOUNDED and LED TMC). Rewritten to require an inverse to cover *every* card of a relation. Re-run clean; a deliberately broken 3-card deck still trips `missing inverse` / `dangling`.
+Still Kiro-only: `.kiro/**`. Proposed for Kiro: MCP server; Loop 2 or Loop 3 (ADR §11). Open: Diya's Kiro-scope choice; push approval; 30-card spot check (not by the author).
+
+**Hours used:** ~1.25 h of the 12 h build budget (Loop 1 complete; Kiro overhead not incurred). **Hours left:** ~10.75.

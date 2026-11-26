@@ -1,0 +1,392 @@
+HERMAN HOLLERITH    FOUNDED        TABULATING MACH CO  IBMARCH          00000001
+TABULATING MACH CO  FOUNDED BY     HERMAN HOLLERITH    IBMARCH          00000002
+CHARLES R. FLINT    FOUNDED        CTR                 IBMARCH          00000003
+CTR                 FOUNDED BY     CHARLES R. FLINT    IBMARCH          00000004
+JAMES POWERS        FOUNDED        POWERS ACCOUNTING   WIKI             00000005
+POWERS ACCOUNTING   FOUNDED BY     JAMES POWERS        WIKI             00000006
+J. PRESPER ECKERT   FOUNDED        ECKERT-MAUCHLY CO   WIKI             00000007
+ECKERT-MAUCHLY CO   FOUNDED BY     J. PRESPER ECKERT   WIKI             00000008
+JOHN MAUCHLY        FOUNDED        ECKERT-MAUCHLY CO   WIKI             00000009
+ECKERT-MAUCHLY CO   FOUNDED BY     JOHN MAUCHLY        WIKI             00000010
+KONRAD ZUSE         FOUNDED        ZUSE KG             WIKI             00000011
+ZUSE KG             FOUNDED BY     KONRAD ZUSE         WIKI             00000012
+WILLIAM SHOCKLEY    FOUNDED        SHOCKLEY SEMI       WIKI             00000013
+SHOCKLEY SEMI       FOUNDED BY     WILLIAM SHOCKLEY    WIKI             00000014
+ROBERT NOYCE        FOUNDED        FAIRCHILD SEMI      WIKI             00000015
+FAIRCHILD SEMI      FOUNDED BY     ROBERT NOYCE        WIKI             00000016
+KEN OLSEN           FOUNDED        DEC                 WIKI             00000017
+DEC                 FOUNDED BY     KEN OLSEN           WIKI             00000018
+WILLIAM NORRIS      FOUNDED        CDC                 WIKI             00000019
+CDC                 FOUNDED BY     WILLIAM NORRIS      WIKI             00000020
+WILLIAM NORRIS      FOUNDED        ERA INC             WIKI             00000021
+ERA INC             FOUNDED BY     WILLIAM NORRIS      WIKI             00000022
+TABULATING MACH CO  MERGED INTO    CTR                 IBMARCH          00000023
+CTR                 FORMED FROM    TABULATING MACH CO  IBMARCH          00000024
+POWERS ACCOUNTING   MERGED INTO    REMINGTON RAND      WIKI             00000025
+REMINGTON RAND      FORMED FROM    POWERS ACCOUNTING   WIKI             00000026
+ECKERT-MAUCHLY CO   MERGED INTO    REMINGTON RAND      WIKI             00000027
+REMINGTON RAND      FORMED FROM    ECKERT-MAUCHLY CO   WIKI             00000028
+REMINGTON RAND      MERGED INTO    SPERRY RAND         WIKI             00000029
+SPERRY RAND         FORMED FROM    REMINGTON RAND      WIKI             00000030
+ERA INC             MERGED INTO    REMINGTON RAND      WIKI             00000031
+REMINGTON RAND      FORMED FROM    ERA INC             WIKI             00000032
+CTR                 RENAMED TO     IBM                 IBMARCH          00000033
+IBM                 RENAMED FROM   CTR                 IBMARCH          00000034
+ELECTRONIC CONTROL  RENAMED TO     ECKERT-MAUCHLY CO   WIKI             00000035
+ECKERT-MAUCHLY CO   RENAMED FROM   ELECTRONIC CONTROL  WIKI             00000036
+THOMAS J. WATSON SR LED            CTR                 IBMARCH          00000037
+CTR                 LED BY         THOMAS J. WATSON SR IBMARCH          00000038
+THOMAS J. WATSON SR LED            IBM                 IBMARCH          00000039
+IBM                 LED BY         THOMAS J. WATSON SR IBMARCH          00000040
+THOMAS J. WATSON JR LED            IBM                 IBMARCH          00000041
+IBM                 LED BY         THOMAS J. WATSON JR IBMARCH          00000042
+HOWARD AIKEN        LED            HARVARD COMP LAB    WIKI             00000043
+HARVARD COMP LAB    LED BY         HOWARD AIKEN        WIKI             00000044
+JAY FORRESTER       LED            PROJECT WHIRLWIND   WIKI             00000045
+PROJECT WHIRLWIND   LED BY         JAY FORRESTER       WIKI             00000046
+MAX NEWMAN          LED            NEWMANRY            WIKI             00000047
+NEWMANRY            LED BY         MAX NEWMAN          WIKI             00000048
+HERMAN HOLLERITH    LED            TABULATING MACH CO  IBMARCH          00000049
+TABULATING MACH CO  LED BY         HERMAN HOLLERITH    IBMARCH          00000050
+MAURICE WILKES      LED            CAMBRIDGE MATH LAB  WIKI             00000051
+CAMBRIDGE MATH LAB  LED BY         MAURICE WILKES      WIKI             00000052
+VANNEVAR BUSH       LED            OSRD                WIKI             00000053
+OSRD                LED BY         VANNEVAR BUSH       WIKI             00000054
+HERMAN HOLLERITH    WORKED AT      US CENSUS BUREAU    IBMARCH          00000055
+US CENSUS BUREAU    EMPLOYED       HERMAN HOLLERITH    IBMARCH          00000056
+HERMAN HOLLERITH    WORKED AT      MIT                 IBMARCH          00000057
+MIT                 EMPLOYED       HERMAN HOLLERITH    IBMARCH          00000058
+JOHN SHAW BILLINGS  WORKED AT      US CENSUS BUREAU    WIKI             00000059
+US CENSUS BUREAU    EMPLOYED       JOHN SHAW BILLINGS  WIKI             00000060
+JAMES POWERS        WORKED AT      US CENSUS BUREAU    WIKI             00000061
+US CENSUS BUREAU    EMPLOYED       JAMES POWERS        WIKI             00000062
+THOMAS J. WATSON SR WORKED AT      NCR                 IBMARCH          00000063
+NCR                 EMPLOYED       THOMAS J. WATSON SR IBMARCH          00000064
+GRACE HOPPER        WORKED AT      HARVARD COMP LAB    WIKI             00000065
+HARVARD COMP LAB    EMPLOYED       GRACE HOPPER        WIKI             00000066
+GRACE HOPPER        WORKED AT      ECKERT-MAUCHLY CO   WIKI             00000067
+ECKERT-MAUCHLY CO   EMPLOYED       GRACE HOPPER        WIKI             00000068
+GRACE HOPPER        WORKED AT      REMINGTON RAND      WIKI             00000069
+REMINGTON RAND      EMPLOYED       GRACE HOPPER        WIKI             00000070
+J. PRESPER ECKERT   WORKED AT      MOORE SCHOOL        WIKI             00000071
+MOORE SCHOOL        EMPLOYED       J. PRESPER ECKERT   WIKI             00000072
+JOHN MAUCHLY        WORKED AT      MOORE SCHOOL        WIKI             00000073
+MOORE SCHOOL        EMPLOYED       JOHN MAUCHLY        WIKI             00000074
+JOHN VON NEUMANN    WORKED AT      PRINCETON IAS       WIKI             00000075
+PRINCETON IAS       EMPLOYED       JOHN VON NEUMANN    WIKI             00000076
+ALAN TURING         WORKED AT      BLETCHLEY PARK      WIKI             00000077
+BLETCHLEY PARK      EMPLOYED       ALAN TURING         WIKI             00000078
+ALAN TURING         WORKED AT      NPL                 WIKI             00000079
+NPL                 EMPLOYED       ALAN TURING         WIKI             00000080
+ALAN TURING         WORKED AT      UNIV OF MANCHESTER  WIKI             00000081
+UNIV OF MANCHESTER  EMPLOYED       ALAN TURING         WIKI             00000082
+MAX NEWMAN          WORKED AT      BLETCHLEY PARK      WIKI             00000083
+BLETCHLEY PARK      EMPLOYED       MAX NEWMAN          WIKI             00000084
+MAX NEWMAN          WORKED AT      UNIV OF MANCHESTER  WIKI             00000085
+UNIV OF MANCHESTER  EMPLOYED       MAX NEWMAN          WIKI             00000086
+TOMMY FLOWERS       WORKED AT      GPO DOLLIS HILL     WIKI             00000087
+GPO DOLLIS HILL     EMPLOYED       TOMMY FLOWERS       WIKI             00000088
+FREDERIC WILLIAMS   WORKED AT      UNIV OF MANCHESTER  WIKI             00000089
+UNIV OF MANCHESTER  EMPLOYED       FREDERIC WILLIAMS   WIKI             00000090
+TOM KILBURN         WORKED AT      UNIV OF MANCHESTER  WIKI             00000091
+UNIV OF MANCHESTER  EMPLOYED       TOM KILBURN         WIKI             00000092
+MAURICE WILKES      WORKED AT      UNIV OF CAMBRIDGE   WIKI             00000093
+UNIV OF CAMBRIDGE   EMPLOYED       MAURICE WILKES      WIKI             00000094
+JOHN BACKUS         WORKED AT      IBM                 IBMARCH          00000095
+IBM                 EMPLOYED       JOHN BACKUS         IBMARCH          00000096
+JOHN ATANASOFF      WORKED AT      IOWA STATE COLLEGE  WIKI             00000097
+IOWA STATE COLLEGE  EMPLOYED       JOHN ATANASOFF      WIKI             00000098
+CLIFFORD BERRY      WORKED AT      IOWA STATE COLLEGE  WIKI             00000099
+IOWA STATE COLLEGE  EMPLOYED       CLIFFORD BERRY      WIKI             00000100
+GEORGE STIBITZ      WORKED AT      BELL LABS           WIKI             00000101
+BELL LABS           EMPLOYED       GEORGE STIBITZ      WIKI             00000102
+CLAUDE SHANNON      WORKED AT      BELL LABS           WIKI             00000103
+BELL LABS           EMPLOYED       CLAUDE SHANNON      WIKI             00000104
+CLAUDE SHANNON      WORKED AT      MIT                 WIKI             00000105
+MIT                 EMPLOYED       CLAUDE SHANNON      WIKI             00000106
+WILLIAM SHOCKLEY    WORKED AT      BELL LABS           WIKI             00000107
+BELL LABS           EMPLOYED       WILLIAM SHOCKLEY    WIKI             00000108
+JOHN BARDEEN        WORKED AT      BELL LABS           WIKI             00000109
+BELL LABS           EMPLOYED       JOHN BARDEEN        WIKI             00000110
+WALTER BRATTAIN     WORKED AT      BELL LABS           WIKI             00000111
+BELL LABS           EMPLOYED       WALTER BRATTAIN     WIKI             00000112
+JACK KILBY          WORKED AT      TEXAS INSTRUMENTS   WIKI             00000113
+TEXAS INSTRUMENTS   EMPLOYED       JACK KILBY          WIKI             00000114
+ROBERT NOYCE        WORKED AT      FAIRCHILD SEMI      WIKI             00000115
+FAIRCHILD SEMI      EMPLOYED       ROBERT NOYCE        WIKI             00000116
+JAY FORRESTER       WORKED AT      MIT                 WIKI             00000117
+MIT                 EMPLOYED       JAY FORRESTER       WIKI             00000118
+KEN OLSEN           WORKED AT      MIT                 WIKI             00000119
+MIT                 EMPLOYED       KEN OLSEN           WIKI             00000120
+SEYMOUR CRAY        WORKED AT      CDC                 WIKI             00000121
+CDC                 EMPLOYED       SEYMOUR CRAY        WIKI             00000122
+SEYMOUR CRAY        WORKED AT      ERA INC             WIKI             00000123
+ERA INC             EMPLOYED       SEYMOUR CRAY        WIKI             00000124
+HOWARD AIKEN        WORKED AT      HARVARD UNIVERSITY  WIKI             00000125
+HARVARD UNIVERSITY  EMPLOYED       HOWARD AIKEN        WIKI             00000126
+VANNEVAR BUSH       WORKED AT      MIT                 WIKI             00000127
+MIT                 EMPLOYED       VANNEVAR BUSH       WIKI             00000128
+KONRAD ZUSE         WORKED AT      HENSCHEL            WIKI             00000129
+HENSCHEL            EMPLOYED       KONRAD ZUSE         WIKI             00000130
+HERMAN GOLDSTINE    WORKED AT      MOORE SCHOOL        WIKI             00000131
+MOORE SCHOOL        EMPLOYED       HERMAN GOLDSTINE    WIKI             00000132
+ARTHUR BURKS        WORKED AT      MOORE SCHOOL        WIKI             00000133
+MOORE SCHOOL        EMPLOYED       ARTHUR BURKS        WIKI             00000134
+IBM                 BUILT          HARVARD MARK I      IBMARCH          00000135
+HARVARD MARK I      BUILT BY       IBM                 IBMARCH          00000136
+MOORE SCHOOL        BUILT          ENIAC               CHM              00000137
+ENIAC               BUILT BY       MOORE SCHOOL        CHM              00000138
+MOORE SCHOOL        BUILT          EDVAC               CHM              00000139
+EDVAC               BUILT BY       MOORE SCHOOL        CHM              00000140
+ECKERT-MAUCHLY CO   BUILT          BINAC               CHM              00000141
+BINAC               BUILT BY       ECKERT-MAUCHLY CO   CHM              00000142
+REMINGTON RAND      BUILT          UNIVAC I            CHM              00000143
+UNIVAC I            BUILT BY       REMINGTON RAND      CHM              00000144
+IBM                 BUILT          IBM 701             IBMARCH          00000145
+IBM 701             BUILT BY       IBM                 IBMARCH          00000146
+IBM                 BUILT          IBM 650             IBMARCH          00000147
+IBM 650             BUILT BY       IBM                 IBMARCH          00000148
+IBM                 BUILT          IBM 704             IBMARCH          00000149
+IBM 704             BUILT BY       IBM                 IBMARCH          00000150
+IBM                 BUILT          IBM 026 KEYPUNCH    IBMARCH          00000151
+IBM 026 KEYPUNCH    BUILT BY       IBM                 IBMARCH          00000152
+IBM                 BUILT          IBM 082 SORTER      IBMARCH          00000153
+IBM 082 SORTER      BUILT BY       IBM                 IBMARCH          00000154
+IBM                 BUILT          IBM 029 KEYPUNCH    IBMARCH          00000155
+IBM 029 KEYPUNCH    BUILT BY       IBM                 IBMARCH          00000156
+IBM                 BUILT          SSEC                IBMARCH          00000157
+SSEC                BUILT BY       IBM                 IBMARCH          00000158
+IBM                 BUILT          SAGE                IBMARCH          00000159
+SAGE                BUILT BY       IBM                 IBMARCH          00000160
+KONRAD ZUSE         BUILT          Z1                  CHM              00000161
+Z1                  BUILT BY       KONRAD ZUSE         CHM              00000162
+KONRAD ZUSE         BUILT          Z2                  CHM              00000163
+Z2                  BUILT BY       KONRAD ZUSE         CHM              00000164
+KONRAD ZUSE         BUILT          Z3                  CHM              00000165
+Z3                  BUILT BY       KONRAD ZUSE         CHM              00000166
+KONRAD ZUSE         BUILT          Z4                  CHM              00000167
+Z4                  BUILT BY       KONRAD ZUSE         CHM              00000168
+UNIV OF MANCHESTER  BUILT          MANCHESTER BABY     CHM              00000169
+MANCHESTER BABY     BUILT BY       UNIV OF MANCHESTER  CHM              00000170
+UNIV OF MANCHESTER  BUILT          MANCHESTER MARK 1   CHM              00000171
+MANCHESTER MARK 1   BUILT BY       UNIV OF MANCHESTER  CHM              00000172
+FERRANTI            BUILT          FERRANTI MARK 1     CHM              00000173
+FERRANTI MARK 1     BUILT BY       FERRANTI            CHM              00000174
+UNIV OF CAMBRIDGE   BUILT          EDSAC               CHM              00000175
+EDSAC               BUILT BY       UNIV OF CAMBRIDGE   CHM              00000176
+GPO DOLLIS HILL     BUILT          COLOSSUS            CHM              00000177
+COLOSSUS            BUILT BY       GPO DOLLIS HILL     CHM              00000178
+IOWA STATE COLLEGE  BUILT          ABC COMPUTER        CHM              00000179
+ABC COMPUTER        BUILT BY       IOWA STATE COLLEGE  CHM              00000180
+MIT                 BUILT          WHIRLWIND I         CHM              00000181
+WHIRLWIND I         BUILT BY       MIT                 CHM              00000182
+PRINCETON IAS       BUILT          IAS MACHINE         CHM              00000183
+IAS MACHINE         BUILT BY       PRINCETON IAS       CHM              00000184
+BELL LABS           BUILT          COMPLEX NUMBER CALC CHM              00000185
+COMPLEX NUMBER CALC BUILT BY       BELL LABS           CHM              00000186
+J. LYONS & CO       BUILT          LEO I               CHM              00000187
+LEO I               BUILT BY       J. LYONS & CO       CHM              00000188
+DEC                 BUILT          PDP-1               CHM              00000189
+PDP-1               BUILT BY       DEC                 CHM              00000190
+CDC                 BUILT          CDC 1604            CHM              00000191
+CDC 1604            BUILT BY       CDC                 CHM              00000192
+NPL                 BUILT          PILOT ACE           CHM              00000193
+PILOT ACE           BUILT BY       NPL                 CHM              00000194
+HARVARD UNIVERSITY  BUILT          HARVARD MARK II     CHM              00000195
+HARVARD MARK II     BUILT BY       HARVARD UNIVERSITY  CHM              00000196
+HERMAN HOLLERITH    INVENTED       HOLLERITH TABULATOR IBMARCH          00000197
+HOLLERITH TABULATOR INVENTED BY    HERMAN HOLLERITH    IBMARCH          00000198
+HERMAN HOLLERITH    INVENTED       PANTOGRAPH PUNCH    IBMARCH          00000199
+PANTOGRAPH PUNCH    INVENTED BY    HERMAN HOLLERITH    IBMARCH          00000200
+JOHN BARDEEN        INVENTED       TRANSISTOR          WIKI             00000201
+TRANSISTOR          INVENTED BY    JOHN BARDEEN        WIKI             00000202
+WALTER BRATTAIN     INVENTED       TRANSISTOR          WIKI             00000203
+TRANSISTOR          INVENTED BY    WALTER BRATTAIN     WIKI             00000204
+WILLIAM SHOCKLEY    INVENTED       TRANSISTOR          WIKI             00000205
+TRANSISTOR          INVENTED BY    WILLIAM SHOCKLEY    WIKI             00000206
+JACK KILBY          INVENTED       INTEGRATED CIRCUIT  WIKI             00000207
+INTEGRATED CIRCUIT  INVENTED BY    JACK KILBY          WIKI             00000208
+ROBERT NOYCE        INVENTED       INTEGRATED CIRCUIT  WIKI             00000209
+INTEGRATED CIRCUIT  INVENTED BY    ROBERT NOYCE        WIKI             00000210
+JAY FORRESTER       INVENTED       CORE MEMORY         WIKI             00000211
+CORE MEMORY         INVENTED BY    JAY FORRESTER       WIKI             00000212
+FREDERIC WILLIAMS   INVENTED       WILLIAMS TUBE       WIKI             00000213
+WILLIAMS TUBE       INVENTED BY    FREDERIC WILLIAMS   WIKI             00000214
+TOM KILBURN         INVENTED       WILLIAMS TUBE       WIKI             00000215
+WILLIAMS TUBE       INVENTED BY    TOM KILBURN         WIKI             00000216
+ALAN TURING         INVENTED       TURING MACHINE      WIKI             00000217
+TURING MACHINE      INVENTED BY    ALAN TURING         WIKI             00000218
+ALAN TURING         INVENTED       BOMBE               WIKI             00000219
+BOMBE               INVENTED BY    ALAN TURING         WIKI             00000220
+TOMMY FLOWERS       INVENTED       COLOSSUS            WIKI             00000221
+COLOSSUS            INVENTED BY    TOMMY FLOWERS       WIKI             00000222
+JOHN ATANASOFF      INVENTED       ABC COMPUTER        WIKI             00000223
+ABC COMPUTER        INVENTED BY    JOHN ATANASOFF      WIKI             00000224
+VANNEVAR BUSH       INVENTED       DIFF ANALYZER       WIKI             00000225
+DIFF ANALYZER       INVENTED BY    VANNEVAR BUSH       WIKI             00000226
+GEORGE STIBITZ      INVENTED       COMPLEX NUMBER CALC WIKI             00000227
+COMPLEX NUMBER CALC INVENTED BY    GEORGE STIBITZ      WIKI             00000228
+JOHN BACKUS         INVENTED       FORTRAN             WIKI             00000229
+FORTRAN             INVENTED BY    JOHN BACKUS         WIKI             00000230
+GRACE HOPPER        INVENTED       A-0 COMPILER        WIKI             00000231
+A-0 COMPILER        INVENTED BY    GRACE HOPPER        WIKI             00000232
+GRACE HOPPER        INVENTED       FLOW-MATIC          WIKI             00000233
+FLOW-MATIC          INVENTED BY    GRACE HOPPER        WIKI             00000234
+J. PRESPER ECKERT   INVENTED       ENIAC               WIKI             00000235
+ENIAC               INVENTED BY    J. PRESPER ECKERT   WIKI             00000236
+JOHN MAUCHLY        INVENTED       ENIAC               WIKI             00000237
+ENIAC               INVENTED BY    JOHN MAUCHLY        WIKI             00000238
+HOWARD AIKEN        INVENTED       HARVARD MARK I      IBMARCH          00000239
+HARVARD MARK I      INVENTED BY    HOWARD AIKEN        IBMARCH          00000240
+MAURICE WILKES      INVENTED       EDSAC               WIKI             00000241
+EDSAC               INVENTED BY    MAURICE WILKES      WIKI             00000242
+MAURICE WILKES      INVENTED       MICROPROGRAMMING    WIKI             00000243
+MICROPROGRAMMING    INVENTED BY    MAURICE WILKES      WIKI             00000244
+CLAUDE SHANNON      INVENTED       INFORMATION THEORY  WIKI             00000245
+INFORMATION THEORY  INVENTED BY    CLAUDE SHANNON      WIKI             00000246
+US CENSUS BUREAU    USED           HOLLERITH TABULATOR IBMARCH          00000247
+HOLLERITH TABULATOR USED BY        US CENSUS BUREAU    IBMARCH          00000248
+1890 US CENSUS      USED           HOLLERITH TABULATOR IBMARCH          00000249
+HOLLERITH TABULATOR USED BY        1890 US CENSUS      IBMARCH          00000250
+ENIAC               USED           VACUUM TUBE         CHM              00000251
+VACUUM TUBE         USED BY        ENIAC               CHM              00000252
+COLOSSUS            USED           VACUUM TUBE         CHM              00000253
+VACUUM TUBE         USED BY        COLOSSUS            CHM              00000254
+Z3                  USED           RELAY               CHM              00000255
+RELAY               USED BY        Z3                  CHM              00000256
+HARVARD MARK I      USED           RELAY               IBMARCH          00000257
+RELAY               USED BY        HARVARD MARK I      IBMARCH          00000258
+IBM 701             USED           WILLIAMS TUBE       IBMARCH          00000259
+WILLIAMS TUBE       USED BY        IBM 701             IBMARCH          00000260
+MANCHESTER BABY     USED           WILLIAMS TUBE       CHM              00000261
+WILLIAMS TUBE       USED BY        MANCHESTER BABY     CHM              00000262
+WHIRLWIND I         USED           CORE MEMORY         CHM              00000263
+CORE MEMORY         USED BY        WHIRLWIND I         CHM              00000264
+IBM 704             USED           CORE MEMORY         IBMARCH          00000265
+CORE MEMORY         USED BY        IBM 704             IBMARCH          00000266
+EDSAC               USED           MERCURY DELAY LINE  CHM              00000267
+MERCURY DELAY LINE  USED BY        EDSAC               CHM              00000268
+UNIVAC I            USED           MERCURY DELAY LINE  CHM              00000269
+MERCURY DELAY LINE  USED BY        UNIVAC I            CHM              00000270
+IBM 650             USED           MAGNETIC DRUM       IBMARCH          00000271
+MAGNETIC DRUM       USED BY        IBM 650             IBMARCH          00000272
+HOLLERITH TABULATOR USED           PUNCHED CARD        IBMARCH          00000273
+PUNCHED CARD        USED BY        HOLLERITH TABULATOR IBMARCH          00000274
+IBM 701             USED           PUNCHED CARD        IBMARCH          00000275
+PUNCHED CARD        USED BY        IBM 701             IBMARCH          00000276
+UNIVAC I            USED           MAGNETIC TAPE       CHM              00000277
+MAGNETIC TAPE       USED BY        UNIVAC I            CHM              00000278
+US CENSUS BUREAU    USED           UNIVAC I            CHM              00000279
+UNIVAC I            USED BY        US CENSUS BUREAU    CHM              00000280
+US ARMY BRL         USED           ENIAC               CHM              00000281
+ENIAC               USED BY        US ARMY BRL         CHM              00000282
+BLETCHLEY PARK      USED           BOMBE               CHM              00000283
+BOMBE               USED BY        BLETCHLEY PARK      CHM              00000284
+BLETCHLEY PARK      USED           COLOSSUS            CHM              00000285
+COLOSSUS            USED BY        BLETCHLEY PARK      CHM              00000286
+IBM 029 KEYPUNCH    SUCCEEDED      IBM 026 KEYPUNCH    IBMARCH          00000287
+IBM 026 KEYPUNCH    PRECEDED       IBM 029 KEYPUNCH    IBMARCH          00000288
+EDVAC               SUCCEEDED      ENIAC               CHM              00000289
+ENIAC               PRECEDED       EDVAC               CHM              00000290
+Z2                  SUCCEEDED      Z1                  CHM              00000291
+Z1                  PRECEDED       Z2                  CHM              00000292
+Z3                  SUCCEEDED      Z2                  CHM              00000293
+Z2                  PRECEDED       Z3                  CHM              00000294
+IBM 704             SUCCEEDED      IBM 701             IBMARCH          00000295
+IBM 701             PRECEDED       IBM 704             IBMARCH          00000296
+MANCHESTER MARK 1   SUCCEEDED      MANCHESTER BABY     CHM              00000297
+MANCHESTER BABY     PRECEDED       MANCHESTER MARK 1   CHM              00000298
+FERRANTI MARK 1     SUCCEEDED      MANCHESTER MARK 1   CHM              00000299
+MANCHESTER MARK 1   PRECEDED       FERRANTI MARK 1     CHM              00000300
+UNIVAC I            SUCCEEDED      BINAC               CHM              00000301
+BINAC               PRECEDED       UNIVAC I            CHM              00000302
+HARVARD MARK II     SUCCEEDED      HARVARD MARK I      IBMARCH          00000303
+HARVARD MARK I      PRECEDED       HARVARD MARK II     IBMARCH          00000304
+CHARLES BABBAGE     INFLUENCED     HOWARD AIKEN        WIKI             00000305
+HOWARD AIKEN        INFLUENCED BY  CHARLES BABBAGE     WIKI             00000306
+JOHN VON NEUMANN    INFLUENCED     EDVAC               WIKI             00000307
+EDVAC               INFLUENCED BY  JOHN VON NEUMANN    WIKI             00000308
+EDVAC               INFLUENCED     EDSAC               WIKI             00000309
+EDSAC               INFLUENCED BY  EDVAC               WIKI             00000310
+EDVAC               INFLUENCED     IAS MACHINE         WIKI             00000311
+IAS MACHINE         INFLUENCED BY  EDVAC               WIKI             00000312
+IAS MACHINE         INFLUENCED     IBM 701             IBMARCH          00000313
+IBM 701             INFLUENCED BY  IAS MACHINE         IBMARCH          00000314
+TURING MACHINE      INFLUENCED     JOHN VON NEUMANN    WIKI             00000315
+JOHN VON NEUMANN    INFLUENCED BY  TURING MACHINE      WIKI             00000316
+ABC COMPUTER        INFLUENCED     JOHN MAUCHLY        WIKI             00000317
+JOHN MAUCHLY        INFLUENCED BY  ABC COMPUTER        WIKI             00000318
+FLOW-MATIC          INFLUENCED     COBOL               WIKI             00000319
+COBOL               INFLUENCED BY  FLOW-MATIC          WIKI             00000320
+GRACE HOPPER        INFLUENCED     COBOL               WIKI             00000321
+COBOL               INFLUENCED BY  GRACE HOPPER        WIKI             00000322
+WHIRLWIND I         INFLUENCED     SAGE                IBMARCH          00000323
+SAGE                INFLUENCED BY  WHIRLWIND I         IBMARCH          00000324
+JOHN SHAW BILLINGS  INFLUENCED     HERMAN HOLLERITH    IBMARCH          00000325
+HERMAN HOLLERITH    INFLUENCED BY  JOHN SHAW BILLINGS  IBMARCH          00000326
+WHIRLWIND I         INFLUENCED     PDP-1               WIKI             00000327
+PDP-1               INFLUENCED BY  WHIRLWIND I         WIKI             00000328
+HERMAN HOLLERITH    BORN IN        BUFFALO NY          IBMARCH          00000329
+BUFFALO NY          BIRTHPLACE OF  HERMAN HOLLERITH    IBMARCH          00000330
+THOMAS J. WATSON SR BORN IN        CAMPBELL NY         IBMARCH          00000331
+CAMPBELL NY         BIRTHPLACE OF  THOMAS J. WATSON SR IBMARCH          00000332
+ALAN TURING         BORN IN        LONDON              WIKI             00000333
+LONDON              BIRTHPLACE OF  ALAN TURING         WIKI             00000334
+KONRAD ZUSE         BORN IN        BERLIN              WIKI             00000335
+BERLIN              BIRTHPLACE OF  KONRAD ZUSE         WIKI             00000336
+GRACE HOPPER        BORN IN        NEW YORK CITY       WIKI             00000337
+NEW YORK CITY       BIRTHPLACE OF  GRACE HOPPER        WIKI             00000338
+JOHN VON NEUMANN    BORN IN        BUDAPEST            WIKI             00000339
+BUDAPEST            BIRTHPLACE OF  JOHN VON NEUMANN    WIKI             00000340
+HOWARD AIKEN        BORN IN        HOBOKEN NJ          WIKI             00000341
+HOBOKEN NJ          BIRTHPLACE OF  HOWARD AIKEN        WIKI             00000342
+J. PRESPER ECKERT   BORN IN        PHILADELPHIA        WIKI             00000343
+PHILADELPHIA        BIRTHPLACE OF  J. PRESPER ECKERT   WIKI             00000344
+JOHN MAUCHLY        BORN IN        CINCINNATI          WIKI             00000345
+CINCINNATI          BIRTHPLACE OF  JOHN MAUCHLY        WIKI             00000346
+CLAUDE SHANNON      BORN IN        PETOSKEY MI         WIKI             00000347
+PETOSKEY MI         BIRTHPLACE OF  CLAUDE SHANNON      WIKI             00000348
+JOHN BACKUS         BORN IN        PHILADELPHIA        WIKI             00000349
+PHILADELPHIA        BIRTHPLACE OF  JOHN BACKUS         WIKI             00000350
+MAURICE WILKES      BORN IN        DUDLEY              WIKI             00000351
+DUDLEY              BIRTHPLACE OF  MAURICE WILKES      WIKI             00000352
+TABULATING MACH CO  LOCATED IN     WASHINGTON DC       IBMARCH          00000353
+WASHINGTON DC       LOCATION OF    TABULATING MACH CO  IBMARCH          00000354
+US CENSUS BUREAU    LOCATED IN     WASHINGTON DC       WIKI             00000355
+WASHINGTON DC       LOCATION OF    US CENSUS BUREAU    WIKI             00000356
+MOORE SCHOOL        LOCATED IN     PHILADELPHIA        WIKI             00000357
+PHILADELPHIA        LOCATION OF    MOORE SCHOOL        WIKI             00000358
+BELL LABS           LOCATED IN     MURRAY HILL NJ      WIKI             00000359
+MURRAY HILL NJ      LOCATION OF    BELL LABS           WIKI             00000360
+BLETCHLEY PARK      LOCATED IN     BUCKINGHAMSHIRE     WIKI             00000361
+BUCKINGHAMSHIRE     LOCATION OF    BLETCHLEY PARK      WIKI             00000362
+PRINCETON IAS       LOCATED IN     PRINCETON NJ        WIKI             00000363
+PRINCETON NJ        LOCATION OF    PRINCETON IAS       WIKI             00000364
+HARVARD UNIVERSITY  LOCATED IN     CAMBRIDGE MA        WIKI             00000365
+CAMBRIDGE MA        LOCATION OF    HARVARD UNIVERSITY  WIKI             00000366
+MIT                 LOCATED IN     CAMBRIDGE MA        WIKI             00000367
+CAMBRIDGE MA        LOCATION OF    MIT                 WIKI             00000368
+UNIV OF MANCHESTER  LOCATED IN     MANCHESTER          WIKI             00000369
+MANCHESTER          LOCATION OF    UNIV OF MANCHESTER  WIKI             00000370
+UNIV OF CAMBRIDGE   LOCATED IN     CAMBRIDGE UK        WIKI             00000371
+CAMBRIDGE UK        LOCATION OF    UNIV OF CAMBRIDGE   WIKI             00000372
+IOWA STATE COLLEGE  LOCATED IN     AMES IA             WIKI             00000373
+AMES IA             LOCATION OF    IOWA STATE COLLEGE  WIKI             00000374
+TEXAS INSTRUMENTS   LOCATED IN     DALLAS              WIKI             00000375
+DALLAS              LOCATION OF    TEXAS INSTRUMENTS   WIKI             00000376
+FAIRCHILD SEMI      LOCATED IN     MOUNTAIN VIEW CA    WIKI             00000377
+MOUNTAIN VIEW CA    LOCATION OF    FAIRCHILD SEMI      WIKI             00000378
+DEC                 LOCATED IN     MAYNARD MA          WIKI             00000379
+MAYNARD MA          LOCATION OF    DEC                 WIKI             00000380
+CDC                 LOCATED IN     MINNEAPOLIS         WIKI             00000381
+MINNEAPOLIS         LOCATION OF    CDC                 WIKI             00000382
+GPO DOLLIS HILL     LOCATED IN     LONDON              WIKI             00000383
+LONDON              LOCATION OF    GPO DOLLIS HILL     WIKI             00000384
+NPL                 LOCATED IN     TEDDINGTON          WIKI             00000385
+TEDDINGTON          LOCATION OF    NPL                 WIKI             00000386
+IBM                 LOCATED IN     NEW YORK CITY       IBMARCH          00000387
+NEW YORK CITY       LOCATION OF    IBM                 IBMARCH          00000388
+ECKERT-MAUCHLY CO   LOCATED IN     PHILADELPHIA        WIKI             00000389
+PHILADELPHIA        LOCATION OF    ECKERT-MAUCHLY CO   WIKI             00000390
+ZUSE KG             LOCATED IN     BAD HERSFELD        WIKI             00000391
+BAD HERSFELD        LOCATION OF    ZUSE KG             WIKI             00000392

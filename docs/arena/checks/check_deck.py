@@ -83,25 +83,36 @@ def main() -> int:
     if seqs != sorted(seqs) or len(set(seqs)) != len(seqs):
         problems.append("sequence numbers are not unique and strictly ascending")
 
-    # Inverses.
+    # Inverses, inferred without the app's vocabulary: r' is the inverse of r only if EVERY
+    # (s, r, o) has (o, r', s). Two entities may share several relations (X FOUNDED and LED Y),
+    # so co-occurrence alone is not enough.
     tset = set(triples)
-    pair_rel: dict[tuple[str, str], set[str]] = defaultdict(set)
+    by_rel: dict[str, list[tuple[str, str]]] = defaultdict(list)
     for s, r, o in triples:
-        inv = [r2 for (o2, r2, s2) in tset if o2 == o and s2 == s]
-        if not inv:
-            problems.append(f"missing inverse for ({s}, {r}, {o})")
-        for r2 in inv:
-            pair_rel[(r, r2)].add(s)
-    rel_to_inv: dict[str, set[str]] = defaultdict(set)
-    for (r, r2) in pair_rel:
-        rel_to_inv[r].add(r2)
-    for r, invs in rel_to_inv.items():
-        if len(invs) != 1:
-            problems.append(f"relation {r} pairs with more than one inverse: {sorted(invs)}")
-    for r, invs in rel_to_inv.items():
-        for r2 in invs:
-            if rel_to_inv.get(r2) != {r}:
-                problems.append(f"inverse mapping not symmetric: {r} -> {r2} but {r2} -> {sorted(rel_to_inv.get(r2, []))}")
+        by_rel[r].append((s, o))
+    back: dict[tuple[str, str], set[str]] = defaultdict(set)
+    for s, r, o in triples:
+        back[(o, s)].add(r)
+    rel_to_inv: dict[str, str] = {}
+    for r, pairs in by_rel.items():
+        candidates = None
+        for s, o in pairs:
+            cs = back.get((s, o), set())
+            candidates = set(cs) if candidates is None else candidates & cs
+        candidates = candidates or set()
+        if not candidates:
+            missing = [(s, o) for s, o in pairs if not back.get((s, o))]
+            for s, o in missing[:5]:
+                problems.append(f"missing inverse for ({s}, {r}, {o})")
+            if not missing:
+                problems.append(f"relation {r} has no single inverse covering all its cards")
+        elif len(candidates) > 1:
+            problems.append(f"relation {r} has several full-coverage inverses (synonyms?): {sorted(candidates)}")
+        else:
+            rel_to_inv[r] = next(iter(candidates))
+    for r, r2 in rel_to_inv.items():
+        if rel_to_inv.get(r2) != r:
+            problems.append(f"inverse mapping not symmetric: {r} -> {r2} but {r2} -> {rel_to_inv.get(r2)}")
 
     # Dangling entities.
     subjects = {s for s, _, _ in triples}

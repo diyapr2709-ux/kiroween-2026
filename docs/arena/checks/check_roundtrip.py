@@ -1,8 +1,8 @@
-"""Loop 1 validation: encode->decode round trip, run independently of Kiro's own tests.
+"""Loop 1 validation: encode->decode round trip, run independently of the app's own tests.
 
 Two targets, both exercised with the same generated cases:
   1. this directory's reference table (`ibm029_ref`) — must be perfect, or the reference is wrong;
-  2. Kiro's encoder in `src/hollerith/`, if importable — every case must round-trip AND every
+  2. the app encoder in `src/hollerith/`, if importable — every case must round-trip AND every
      character's hole pattern must equal the reference pattern.
 
 Usage (from the repo root):
@@ -25,7 +25,7 @@ INVALID = ["a\tb", "\x00", "café", "⌑", "~", "^", "`", "{", "}", "[", "]", "\
 
 
 def load_kiro():
-    """Return (encode, decode, error_type) from Kiro's package, or None if not present."""
+    """Return (encode, decode, error_type) from the app package, or None if not present."""
     sys.path.insert(0, str(Path.cwd() / "src"))
     try:
         mod = importlib.import_module("hollerith.hollerith_code")
@@ -36,7 +36,7 @@ def load_kiro():
 
 
 def to_matrix(card) -> list[list[bool]]:
-    """Normalise whatever Kiro returns into a 12x80 list of bools."""
+    """Normalise whatever the app returns into a 12x80 list of bools."""
     if hasattr(card, "holes"):
         card = card.holes
     if hasattr(card, "tolist"):
@@ -52,7 +52,7 @@ def main() -> int:
 
     failures: list[str] = []
     kiro = load_kiro()
-    print(f"reference alphabet: {len(ALPHA)} chars; Kiro encoder: {'found' if kiro else 'NOT FOUND (reference only)'}")
+    print(f"reference alphabet: {len(ALPHA)} chars; app encoder: {'found' if kiro else 'NOT FOUND (reference only)'}")
 
     @settings(max_examples=args.cases, deadline=None, derandomize=False, database=None,
               suppress_health_check=list(HealthCheck))
@@ -66,10 +66,10 @@ def main() -> int:
             k_enc, k_dec, _ = kiro
             km = to_matrix(k_enc(s))
             if km != m:
-                failures.append(f"KIRO hole pattern differs from reference for {s!r}")
+                failures.append(f"APP hole pattern differs from reference for {s!r}")
             kb = k_dec(k_enc(s))
             if kb.rstrip(" ") != s.rstrip(" "):
-                failures.append(f"KIRO round-trip failed: {s!r} -> {kb!r}")
+                failures.append(f"APP round-trip failed: {s!r} -> {kb!r}")
 
     import random
     random.seed(args.seed)
@@ -93,18 +93,18 @@ def main() -> int:
             k_enc, _, k_err = kiro
             try:
                 k_enc(s)
-                failures.append(f"KIRO accepted invalid input {s!r}")
+                failures.append(f"APP accepted invalid input {s!r}")
             except k_err:
                 pass
             except Exception as e:  # wrong exception type is a minor finding
-                failures.append(f"KIRO rejected {s!r} with {type(e).__name__}, not CardEncodingError")
+                failures.append(f"APP rejected {s!r} with {type(e).__name__}, not CardEncodingError")
 
     if kiro:
         k_enc, _, _ = kiro
         for ch in ALPHA:
             km = to_matrix(k_enc(ch))
             if km != ref.encode(ch):
-                failures.append(f"KIRO code table differs from reference at {ch!r}")
+                failures.append(f"APP code table differs from reference at {ch!r}")
 
     uniq = sorted(set(failures))
     print(f"generated cases: {args.cases}; failures: {len(uniq)}")

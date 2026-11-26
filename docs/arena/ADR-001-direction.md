@@ -19,7 +19,7 @@
 
 ## 1. The decision in one paragraph
 
-Build **"an AI that shows its receipts."** A hand-curated graph of computing history 1880–1960 (**100 facts = 200 cards with inverses**, range 75–150 facts) is stored *only* as a deck of IBM 029 punched cards — the deck file is the database, and every card carries a source code. A MINERVA-style walker (REINFORCE, **pre-registered as the headline mode**, with a supervised-on-BFS-paths mode built first as the fallback; both tested at Holm-corrected α) answers held-out `(entity, relation, ?)` queries by walking the deck; beam search guarantees a path for every answer. The walk is replayed in a **static web card-reader** (hosted on GitHub Pages — a working URL is a published requirement). The narrator cites card sequence numbers (cols 73–80); a deterministic faithfulness check confirms every named entity and every cited card is on the path. A dead end is a **jammed card**, and an entity not in the deck returns **"NO CARDS, NO ANSWER"** — the product's answer to hallucination. Evaluation follows the eval-scientist's protocol (10-fold CV × 3 seeds, filtered ranking, paired bootstrap + McNemar vs. the stronger of random-walk and frequency baselines). The LLM-only baseline is reported as a *memorisation reference*, not a bar to beat.
+Build **"an AI that shows its receipts."** A hand-curated graph of computing history 1880–1964 (**196 facts = 392 cards with inverses**, 151 entities, 12 relation pairs — authored Nov 26 at zero Kiro cost, see §11) is stored *only* as a deck of IBM 029 punched cards — the deck file is the database, and every card carries a source code. A MINERVA-style walker (REINFORCE, **pre-registered as the headline mode**, with a supervised-on-BFS-paths mode built first as the fallback; both tested at Holm-corrected α) answers held-out `(entity, relation, ?)` queries by walking the deck; beam search guarantees a path for every answer. The walk is replayed in a **static web card-reader** (hosted on GitHub Pages — a working URL is a published requirement). The narrator cites card sequence numbers (cols 73–80); a deterministic faithfulness check confirms every named entity and every cited card is on the path. A dead end is a **jammed card**, and an entity not in the deck returns **"NO CARDS, NO ANSWER"** — the product's answer to hallucination. Evaluation follows the eval-scientist's protocol (10-fold CV × 3 seeds, filtered ranking, paired bootstrap + McNemar vs. the stronger of random-walk and frequency baselines). The LLM-only baseline is reported as a *memorisation reference*, not a bar to beat.
 
 ## 2. Decisions on the four open questions
 
@@ -65,7 +65,7 @@ Wikidata as source · any web backend · LLM-as-judge faithfulness · hyperparam
 
 ## 4. Evaluation protocol (eval-scientist veto applied)
 
-- **Split:** **5-fold** CV by *fact*, 20 % held out per fold, queries in both directions → **200 pooled queries** at 100 facts (Hits@1 CI ≈ ±7 pp; each fact tested exactly once, so pooled n is identical to 10-fold at half the runs). Validation = one further fold held out of each training fold for tuning only. Reachability drop from the sparser training graph is reported.
+- **Split:** **5-fold** CV by *fact*, 20 % held out per fold, queries in both directions → **392 pooled queries** at 196 facts (Hits@1 CI ≈ ±5 pp; each fact tested exactly once, so pooled n is identical to 10-fold at half the runs). Validation = one further fold held out of each training fold for tuning only. Reachability drop from the sparser training graph is reported.
 - **Leakage gate (fail loudly):** for every test triple, *every* edge between {h, t} in both directions is removed from the training graph; the query's own edge is masked during training rollouts; relation pairs with Jaccard(h,t-pair sets) > 0.5 fail. Test entities absent from training are dropped and counted.
 - **Reachability report:** share of test queries with a ≤T-hop path in the training graph; metrics on all queries and on the reachable subset. **BFS reachability is the oracle upper bound.** (This answers "why not BFS": with the edge held out, BFS can only enumerate candidates — it cannot pick the answer; the walker learns which paths imply which relation.)
 - **Ranking:** filtered (Lin et al.), ties broken pessimistically by mean rank of the tie group. Unreached target → rank ∞ (MRR 0, miss). Beam coverage reported.
@@ -144,5 +144,12 @@ Accepted without contest in round 2: hosting; deck-MCP (8/10 vs 6.5 for Wikidata
 
 Dissent recorded, not adopted: `scope-risk` would also move jam and hover-to-decode to stretch (−1 h). Overruled: jam *is* the pitch's answer to hallucination, and hover-to-decode is what makes raw holes legible to a judge (judge-sim's Design deduction). Both are cheap (tilt + lamp; tooltip).
 
+## 11. Division-of-labour change (2026-11-26 evening, Diya's decision)
+
+Diya instructed Claude Code three times to build application code. The contract's "Kiro writes all code" clause is relaxed by Diya for `src/`, `tests/`, `data/`; it is **not** relaxed for `.kiro/`. Consequences, recorded honestly:
+- **Loop 1 is built and verified** by Claude Code (encoder, deck, lint, CLI, 80 tests, 196-fact deck). Authorship is tracked in [authorship.md](authorship.md) and will appear in the README.
+- **Rubric cost:** Implementation (Kiro use) is now scored on what Kiro *does* write. judge-sim's 8.5 projection assumed Kiro wrote everything; expect lower unless Kiro owns visible, substantive pieces. Recommended Kiro scope to keep that score defensible: all of `.kiro/` (steering mirroring `code_table.py`, hooks running `hollerith lint` + pytest on save, MCP config), the **MCP server**, and at least one of Loop 2 (policy + eval) or Loop 3 (web reader). Diya decides; the arena can re-score once decided.
+- **Deck size** rose from the 100-fact target to 196 facts because authoring cost no Kiro iteration; eval-scientist's CI tightens to ≈ ±5 pp. Spot-check of 30 random cards is still owed (by Diya or the challenger — not by the author).
+
 ---
-**Next action on approval:** Diya pastes `docs/arena/spec-input-1.md` into Kiro for P0 + Loop 1.
+**Next action:** Diya approves the first commit + push (arena, Loop 1 code, deck), chooses Kiro's scope from §11, and pastes the revised `spec-input-1.md` into Kiro.
