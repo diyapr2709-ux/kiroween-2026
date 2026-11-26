@@ -80,6 +80,33 @@ def cmd_neighbours(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_split(args: argparse.Namespace) -> int:
+    from .split import make_folds, write_folds
+    deck = Deck.load(args.deck)
+    folds = make_folds(deck, k=args.folds, seed=args.split_seed, hops=args.hops)
+    meta = write_folds(folds, args.out, deck, args.split_seed, args.hops)
+    print(f"folds={meta['k']} queries={meta['total_queries']} reachable={meta['reachable_rate']:.3f} "
+          f"answerable={meta['answerable_rate']:.3f} excluded_facts={meta['excluded_total']} -> {args.out}/")
+    return 0
+
+
+def cmd_eval(args: argparse.Namespace) -> int:
+    from .baselines import BASELINES
+    from .evaluate import format_table, run
+    systems = {}
+    for name in args.systems.split(","):
+        if name in BASELINES:
+            systems[name] = BASELINES[name](args.hops) if name == "random_walk" else BASELINES[name]()
+        else:
+            print(f"error: unknown system {name!r}; known: {sorted(BASELINES)}", file=sys.stderr)
+            return 1
+    seeds = [int(s) for s in args.seeds.split(",")]
+    summary = run(args.deck, systems, args.out, seeds, args.folds, args.split_seed, args.hops)
+    print(format_table(summary))
+    print(f"-> {args.out}/hits1.csv, {args.out}/summary.json")
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(prog="hollerith", description="Hollerith's Ghost card tools")
     sub = ap.add_subparsers(dest="cmd", required=True)
@@ -109,6 +136,24 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("entity")
     p.add_argument("--deck", default=DEFAULT_DECK)
     p.set_defaults(fn=cmd_neighbours)
+
+    p = sub.add_parser("split", help="write k-fold evaluation splits with the leakage gate")
+    p.add_argument("--deck", default=DEFAULT_DECK)
+    p.add_argument("--out", default="splits")
+    p.add_argument("--folds", type=int, default=5)
+    p.add_argument("--split-seed", type=int, default=0)
+    p.add_argument("--hops", type=int, default=3)
+    p.set_defaults(fn=cmd_split)
+
+    p = sub.add_parser("eval", help="evaluate systems with filtered Hits@k / MRR over the folds")
+    p.add_argument("--systems", default="random_walk,frequency")
+    p.add_argument("--seeds", default="0,1,2")
+    p.add_argument("--deck", default=DEFAULT_DECK)
+    p.add_argument("--out", default="results")
+    p.add_argument("--folds", type=int, default=5)
+    p.add_argument("--split-seed", type=int, default=0)
+    p.add_argument("--hops", type=int, default=3)
+    p.set_defaults(fn=cmd_eval)
 
     args = ap.parse_args(argv)
     try:

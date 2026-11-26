@@ -5,7 +5,7 @@ description = "Hollerith's Ghost - a knowledge graph where every fact is an IBM 
 readme = "README.md"
 requires-python = ">=3.12"
 license = { text = "MIT" }
-dependencies = []
+dependencies = ["numpy>=2"]
 
 [project.scripts]
 hollerith = "hollerith.cli:main"
