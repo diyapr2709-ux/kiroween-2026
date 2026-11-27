@@ -19,11 +19,16 @@ relaxed for `.kiro/`: everything under `.kiro/` is written by Kiro, or it does n
 | `src/hollerith/lint.py` | Claude Code | card lint rules |
 | `src/hollerith/cli.py` | Claude Code | `hollerith lint/decode/punch/show/neighbours` |
 | `tests/test_roundtrip.py`, `test_code_table.py`, `test_deck.py`, `test_lint.py` | Claude Code | Loop 1 tests |
-| `data/cards.deck` | Claude Code (authored from training knowledge; 30-card spot check pending) | source codes name the reference family, not page-level citations |
-| `.kiro/**` | **Kiro only** | specs, steering, hooks, MCP config — none written yet |
-| `src/hollerith/mcp_server.py` | *unassigned* | proposed for Kiro |
-| Loop 2 (`split.py`, `policy.py`, `baselines.py`, `evaluate.py`) | *unassigned* | Diya decides |
-| Loop 3 (`parse.py`, `narrate.py`, `trace.py`, `web/`) | *unassigned* | Diya decides |
+| `data/cards.deck` | Claude Code (authored from training knowledge; reviewer spot-checked 30 cards: 29 true, 1 doubtful → replaced) | source codes name the reference family, not page-level citations |
+| `src/hollerith/{graph,split,baselines,evaluate}.py`, `tests/test_split_eval.py`, `tests/test_protocol.py` | Claude Code | Loop 2 evaluation protocol (universe B, leakage gate, baselines, filtered ranking) |
+| `src/hollerith/policy.py`, `tests/test_policy.py` | Claude Code | the walker (RL + SL, beam decoding) |
+| `src/hollerith/{parse,narrate,trace,questions}.py`, `tests/test_ask.py`, `tests/test_questions.py` | Claude Code | Loop 3 CLI side: parser, templated narrator, `ask` pipeline, trace JSON, pull-a-card |
+| `tests/test_cli.py`, `tests/test_stats_harness.py` | Claude Code | |
+| `README.md` | Claude Code draft; Diya finalises | "How this was built" must match this table |
+| `.kiro/**` | **Kiro only** | specs, steering, hooks, MCP config — none written yet (spec-input-1 v2) |
+| `src/hollerith/mcp_server.py`, `tests/test_mcp_server.py` | **Kiro** (assigned, spec-input-1 v2) | not written yet |
+| `web/**`, `hollerith precompute`, `.github/workflows/pages.yml` | **Kiro** (assigned, spec-input-2) | not written yet |
+| `docs/kiro/**` | **Kiro** | tool-call transcripts for the write-up |
 
 Git evidence: commits Claude Code makes carry a `Co-Authored-By: Claude …` trailer. Kiro's
 commits carry Kiro's. The README's "How this was built" section must match this table.
