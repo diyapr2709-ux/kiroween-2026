@@ -146,6 +146,11 @@ Accepted without contest in round 2: hosting; deck-MCP (8/10 vs 6.5 for Wikidata
 
 Dissent recorded, not adopted: `scope-risk` would also move jam and hover-to-decode to stretch (−1 h). Overruled: jam *is* the pitch's answer to hallucination, and hover-to-decode is what makes raw holes legible to a judge (judge-sim's Design deduction). Both are cheap (tilt + lamp; tooltip).
 
+## 10b. Loop 2 outcome (2026-11-26 22:00, Diya's decision)
+The pre-registered exit test was not met by either training mode (results.md). Diya accepted the honest result;
+no further RL variants. The pitch rests on receipts, not accuracy. The LLM-only baseline was **not run** (no API key
+available); it is reported as absent, not estimated.
+
 ## 11. Division-of-labour change (2026-11-26 evening, Diya's decision)
 
 Diya instructed Claude Code three times to build application code. The contract's "Kiro writes all code" clause is relaxed by Diya for `src/`, `tests/`, `data/`; it is **not** relaxed for `.kiro/`. Consequences, recorded honestly:

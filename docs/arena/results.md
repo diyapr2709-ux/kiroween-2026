@@ -99,6 +99,11 @@ variant (no revisits) was added after the first results, because the product wal
 (A→B→A→B) on dead-end questions; it is OFF for the evaluation above and ON for the shipped product
 walker. Its evaluation is reported as the ablation row — it is weaker on Hits@1.
 
+### Not run: LLM-only baseline
+The protocol listed an LLM-only memorisation reference. **It was not run** — no LLM API key was available on the
+student access used for this project — and no number is estimated for it. If one is ever run, it is reported as a
+memorisation reference the walker is not claimed to beat.
+
 ## Universe A (secondary), T = 3 — `--universe all --hops 3`, baselines only
 392 queries, reachable 0.301, answerable 0.806. frequency Hits@1 0.023, random_walk 0.000 (pre subject-filter fix).
 

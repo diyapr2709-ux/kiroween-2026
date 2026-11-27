@@ -181,4 +181,7 @@ RL re-run (incl. `policy_rl_simple` ablation) still running in the background (~
 `uv run hollerith eval --systems policy_rl,policy_sl,policy_rl_simple,frequency,random_walk --seeds 0,1,2` (1369 s CPU, 52 min wall under contention): **policy_rl 0.072 ± 0.002**, policy_sl 0.073 ± 0.007, rl_simple 0.029, sl_simple 0.044, frequency 0.035, random walk 0.017; ceiling 0.403. Corrected stats: RL Δ +0.037, fact-clustered CI [+0.001, +0.076], per-seed McNemar p 0.052 / 0.087 / 0.043 → **FAIL** at α 0.025; SL FAIL (above); RL vs SL Δ −0.001. results.md headline finalised: "not met, by either training mode". [loop-2-findings.md](loop-2-findings.md) updated.
 **Operating rule triggered:** the loop's exit criterion failed on its full attempt → ask Diya (accept the honest result vs spend hours on a disclosed RL variant with low expected value per challenger-1). Arbiter recommendation: accept; the pitch is receipts, not accuracy; remaining hours go to Kiro's visible work and the submission pack.
 
+### 2026-11-26 22:00 — Diya: "go ahead with both decisions"
+**Decision 1 — ACCEPTED:** Loop 2 closes with the honest negative-leaning result; no further RL variants; the headline in results.md/README is final. **Decision 2:** Diya starts Kiro on spec-input-1 then spec-input-2 (her action; Claude Code validates when Kiro's commits land). Added to results.md and README Limitations: **no LLM-only baseline was run** — no API key is available on Diya's student access; the README's LLM sentence stays conditional.
+
 **Hours used:** ~6.0 h of 12. **Hours left:** ~6.0.

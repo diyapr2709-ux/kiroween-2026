@@ -84,6 +84,7 @@ not a target: the walker's claim is that every answer cites the cards it came fr
 - **Grounded is not correct.** A third of inferred answers are wrong while citing real cards. The system makes
   hallucination *visible*; it does not make it rare.
 - **The effect is not statistically established.** See above; we do not say "significant", "trending", or "reasons".
+- **No LLM-only baseline was run** (no API key was available), so nothing here compares the walker to an LLM.
 - **Not comparable to published MINERVA numbers:** different graph, no LSTM history encoder, 4-hop limit, filtered
   ranking with mean-rank ties.
 - **REINFORCE training takes ~46 s per fold** (target was 30 s); the full evaluation suite takes ~13 min on an M4.
