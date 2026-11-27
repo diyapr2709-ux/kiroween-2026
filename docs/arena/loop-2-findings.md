@@ -33,12 +33,15 @@ Leakage: 15,047 beam path cards across all folds ∈ walking graph, none test/in
 4.2e-10 (RL); entropy sign, baseline update order, NO_OP-kept dropout, Adam ascent for both objectives correct.
 Reproducibility: two runs byte-identical.
 
-## Honest result
-See results.md "Headline". The walker is better than frequency in every seed by ~4 points of Hits@1 on a 288-query
-test set with a 40 % ceiling, and that effect is not statistically significant at α = 0.025 per seed. RL ≈ SL
-(v1 run: 0.072 vs 0.073, paired Δ −0.001). The headline sentence says exactly this.
+## Honest result (final)
+See results.md "Headline". Both modes are better than frequency in every seed by ~4 points of Hits@1 on a 288-query
+test set with a 40 % ceiling; neither meets the pre-registered test (RL per-seed McNemar p 0.052 / 0.087 / 0.043;
+SL 0.136 / 0.029 / 0.061; α 0.025). RL ≈ SL (paired Δ −0.001). The simple-path ablations are weaker, RL-simple below
+frequency. eval-scientist confirmed the headline wording and the per-seed reading.
 
-## Still open before Loop 2 closes
-1. RL 3-seed re-run under the corrected evaluator → rows + exit test in results.md.
-2. Kiro's part of Loop 1 (`.kiro/`, MCP server) — unchanged, not started.
-3. eval-scientist to confirm the revised headline wording.
+## Loop 2 status
+**Claude Code's half is complete and verified; the loop's exit criterion ("§4 exit criterion met by the
+pre-registered mode") is NOT met** on its one full attempt. Per the operating rules this is a decision for Diya,
+not for the arbiter: accept the honest negative-leaning result (the pitch rests on receipts, not on accuracy; the
+challenger judged further RL work low-value), or spend remaining hours on a disclosed variant. Kiro's Loop 1 part
+(`.kiro/`, MCP server) remains not started.

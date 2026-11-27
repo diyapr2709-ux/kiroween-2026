@@ -4,15 +4,20 @@ Every number here has the command that regenerates it. Protocol: [ADR-001 §4](A
 Statistics: `docs/arena/checks/stats.py` (corrected 2026-11-26 after the Loop 2 review — see §"Statistics
 correction"). Deck: `data/cards.deck`, 196 facts / 392 cards, committed before any split existed.
 
-## Headline (honest; final wording awaits the RL rows — eval-scientist)
+## Headline (honest; final)
 
-**The pre-registered criterion was not met.** On the pre-registered set of 144 multi-hop-testable facts
-(288 queries, reachability ceiling 40.3 %), the supervised walker reaches Hits@1 0.073 against a frequency
-baseline of 0.035 (seed-to-seed sd 0.007 — optimiser noise, not the uncertainty of the estimate). The
-difference is positive in every seed (Δ +0.031 / +0.045 / +0.038) but fails the test under every reading:
-fact-clustered 95 % CI [−0.001, +0.080]; per-seed McNemar p = 0.136 / 0.029 / 0.061 vs α = 0.025;
-seed-majority McNemar p = 0.12. RL is reported alongside under Holm once its re-run completes.
-Every narrated answer cites the cards on its path (faithfulness 657/657).
+**The pre-registered criterion was not met, by either training mode.** On the pre-registered set of 144
+multi-hop-testable facts (288 queries, reachability ceiling 40.3 %), the walker reaches Hits@1 **0.072 (REINFORCE,
+the pre-registered headline mode) and 0.073 (supervised)** against a frequency baseline of 0.035 (seed-to-seed sd
+0.002 / 0.007 — optimiser noise, not the uncertainty of the estimate). The difference is positive in every seed for
+both modes (RL Δ +0.038 / +0.035 / +0.038; SL +0.031 / +0.045 / +0.038) but fails the pre-registered test:
+per-seed McNemar p = 0.052 / 0.087 / 0.043 (RL) and 0.136 / 0.029 / 0.061 (SL) against α = 0.025 (Holm, two
+modes). The fact-clustered 95 % CIs are [+0.001, +0.076] (RL) and [−0.001, +0.080] (SL). RL and SL are
+indistinguishable (paired Δ −0.001, CI [−0.020, +0.017]). Every narrated answer cites the cards on its path
+(faithfulness 662/662).
+
+Read plainly: a ~4-point Hits@1 advantage over the frequency baseline that we cannot distinguish from chance at
+the level we committed to in advance, on a 288-query test with a 40 % ceiling.
 
 **Disclosure — choice of T.** The ADR said "T likely 3". T = 4 was fixed *after* measuring the universe's
 reachability at T = 3 / 4 / 5 (34.7 / 40.3 / 43.8 %) — a structural measurement with no model involved and
@@ -51,15 +56,27 @@ degree-1 entities 53 (35 %) / testable facts 144 / excluded same-pair facts 4 / 
 | system | Hits@1 | Hits@10 | MRR | Hits@1 on reachable subset (diagnostic) | coverage |
 |---|---|---|---|---|---|
 | *reachability ceiling* | 0.403 | — | — | 1.000 | — |
-| policy_rl (pre-registered headline) | *re-run in progress under the corrected evaluator; v1 run: 0.072 ± 0.002* | 0.263 | 0.120 | 0.178 | 0.302 |
-| policy_sl | **0.073 ± 0.007** | 0.274 ± 0.003 | 0.129 ± 0.005 | 0.181 ± 0.017 | 0.315 |
+| **policy_rl** (pre-registered headline) | **0.072 ± 0.002** | 0.263 ± 0.010 | 0.120 ± 0.005 | 0.178 ± 0.005 | 0.302 |
+| policy_sl | 0.073 ± 0.007 | 0.274 ± 0.003 | 0.129 ± 0.005 | 0.181 ± 0.017 | 0.315 |
+| policy_rl_simple (ablation: no entity revisits) | 0.029 ± 0.008 | 0.256 ± 0.013 | 0.091 ± 0.003 | 0.072 ± 0.020 | 0.372 |
 | policy_sl_simple (ablation: no entity revisits) | 0.044 ± 0.004 | 0.279 ± 0.008 | 0.109 ± 0.007 | 0.109 ± 0.010 | 0.368 |
 | frequency | 0.035 ± 0.000 | 0.222 ± 0.000 | 0.082 ± 0.000 | 0.034 | 0.288 |
 | random_walk | 0.017 ± 0.000 | 0.274 ± 0.000 | 0.081 ± 0.000 | 0.043 | 0.403 |
 
-± is the sample sd over 3 seeds. Baselines are deterministic.
+± is the sample sd over 3 seeds. Baselines are deterministic. Full run: 1369 s CPU (≈ 45 s per RL fit).
 
-### Exit test — `python3 -I docs/arena/checks/stats.py results/hits1.csv --system policy_sl --baselines frequency,random_walk --alpha 0.025 --boot 10000 --seed 0`
+### Exit test, pre-registered headline — `python3 -I docs/arena/checks/stats.py results/hits1.csv --system policy_rl --baselines frequency,random_walk --alpha 0.025 --boot 10000 --seed 0`
+
+```
+ΔHits@1 (policy_rl − frequency) = +0.037   95% fact-clustered bootstrap CI [+0.001, +0.076]   facts=144 queries=288
+McNemar exact, seed 0: b=19 c=8 p=0.0522  FAIL   seed 1: b=19 c=9 p=0.0872  FAIL   seed 2: b=18 c=7 p=0.0433  FAIL  (alpha 0.025)
+McNemar on seed-majority vote (information only): b=21 c=8 p=0.0241
+sign of Δ in every seed: True (+0.038, +0.035, +0.038)
+EXIT CRITERION: FAIL
+```
+RL vs SL (paired): Δ −0.001, CI [−0.020, +0.017] — indistinguishable. `policy_rl_simple`: Δ −0.006, CI [−0.034, +0.021], sign not consistent.
+
+### Exit test, supervised mode — `python3 -I docs/arena/checks/stats.py results/hits1.csv --system policy_sl --baselines frequency,random_walk --alpha 0.025 --boot 10000 --seed 0`
 
 ```
 ΔHits@1 (policy_sl − frequency) = +0.038   95% fact-clustered bootstrap CI [-0.001, +0.080]   facts=144 queries=288
@@ -69,7 +86,6 @@ sign of Δ in every seed: True (+0.031, +0.045, +0.038)
 EXIT CRITERION: FAIL
 ```
 Ablation `policy_sl_simple`: Δ +0.009, CI [−0.022, +0.042], per-seed p 0.83 / 0.83 / 0.54 — FAIL.
-`policy_rl` rows and its test are appended when the re-run completes.
 
 ### Statistics correction (2026-11-26, Loop 2 review)
 The first version of `stats.py` pooled (seed, query) rows (n = 864) and reported CI [+0.017, +0.059], McNemar
