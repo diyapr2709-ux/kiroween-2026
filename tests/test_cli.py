@@ -93,3 +93,33 @@ def test_corrupt_deck_exits_2(tmp_path: Path, capsys) -> None:
     p.write_text("HERMAN HOLLERITH".ljust(72) + "ABCDEFGH\n")
     assert main(["neighbours", "HERMAN HOLLERITH", "--deck", str(p)]) == 2
     assert "sequence" in capsys.readouterr().err
+
+
+def test_pull_rejects_non_integer_and_unknown_sequence(deck_path: Path, tmp_path: Path, capsys) -> None:
+    model = tmp_path / "w.npz"
+    assert main(["ask", "Who founded the Tabulating Machine Company?", "--deck", str(deck_path), "--model", str(model), "--pull", "abc"]) == 1
+    assert "--pull expects" in capsys.readouterr().err
+    assert main(["ask", "Who founded the Tabulating Machine Company?", "--deck", str(deck_path), "--model", str(model), "--pull", "99999"]) == 1
+    assert "no card 00099999" in capsys.readouterr().err
+
+
+def test_ask_trains_on_first_run_instead_of_lying(deck_path: Path, tmp_path: Path, capsys) -> None:
+    model = tmp_path / "w.npz"
+    assert not model.exists()
+    rc = main(["ask", "Who founded the Tabulating Machine Company?", "--deck", str(deck_path), "--model", str(model)])
+    out = capsys.readouterr()
+    assert rc == 0 and model.exists() and "trained walker (first run)" in out.err
+    assert "HERMAN HOLLERITH" in out.out
+
+
+def test_split_rejects_bad_fold_counts(deck_path: Path, tmp_path: Path, capsys) -> None:
+    assert main(["split", "--deck", str(deck_path), "--out", str(tmp_path / "s"), "--folds", "1"]) == 1
+    assert main(["split", "--deck", str(deck_path), "--out", str(tmp_path / "s"), "--folds", "500"]) == 1
+    assert "--folds must be between" in capsys.readouterr().err
+
+
+def test_train_rejects_empty_deck(tmp_path: Path, capsys) -> None:
+    empty = tmp_path / "empty.deck"
+    empty.write_bytes(b"")
+    assert main(["train", "--deck", str(empty), "--out", str(tmp_path / "w.npz")]) == 1
+    assert "empty" in capsys.readouterr().err

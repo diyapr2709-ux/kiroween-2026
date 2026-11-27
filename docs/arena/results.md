@@ -90,14 +90,22 @@ walker. Its evaluation is reported as the ablation row — it is weaker on Hits@
 `uv run hollerith train --mode sl --seed 0` (1.9 s, simple paths, full deck). Over the 392 card-derived questions
 (`hollerith.questions`), each asked once directly and once with its own card pulled:
 
+Product walker = SL, simple paths, **chain pruning** (beams restricted to prefixes of relation chains that explained the
+asked relation in training; a walk jams where its shape stops being known). Both flags are product-only and OFF in the
+evaluation above.
+
 | | count | share |
 |---|---|---|
 | direct card found | 317 / 392 | 81 % (the rest parse to a relation the entity has no card for) |
-| pull-a-card: walker recovers the pulled answer | 134 / 392 | 34 % |
-| pull-a-card: jam (unknown path shape or low confidence) | 74 / 392 | 19 % |
-| pull-a-card: **grounded but wrong** | 131 / 392 | 33 % |
-| pull-a-card: no cards | 53 / 392 | 14 % |
+| pull-a-card: walker recovers the pulled answer | 136 / 392 | 35 % |
+| pull-a-card: jam (unknown shape / low confidence; mean 1.5 cards shown) | 57 / 392 | 15 % |
+| pull-a-card: **grounded but wrong** | 134 / 392 | 34 % |
+| pull-a-card: no cards | 65 / 392 | 17 % |
 
-Faithfulness — `python3 -I docs/arena/checks/check_faithfulness.py <traces> --deck data/cards.deck`: **657 answered,
-657 faithful, rate 1.000**, 74 jams, 53 no-cards. Narration is templated from path cards only, so this is by
+Chain pruning removed the 4-hop wandering (challenger-1) but did **not** reduce grounded-but-wrong answers
+(33 % → 34 %): a plausible path *shape* can still end on the wrong entity. This is the product's main limitation and
+the reason the receipts matter.
+
+Faithfulness — `python3 -I docs/arena/checks/check_faithfulness.py <traces> --deck data/cards.deck`: **662 answered,
+662 faithful, rate 1.000**, 57 jams, 65 no-cards. Narration is templated from path cards only, so this is by
 construction; the check guards regressions.

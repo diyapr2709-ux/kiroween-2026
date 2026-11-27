@@ -62,6 +62,7 @@ def train_full(deck: Deck, mode: str = "sl", seed: int = 0, epochs: int = 40, ho
     from .graph import forward_facts
     g = Graph.from_deck(deck)
     p = Policy(mode=mode, hops=hops, epochs=epochs, simple_paths=True)  # product walker: no oscillation
+    p.chain_prune = True  # product walker: jam where the path shape stops being known, do not wander
     p.fit(g, forward_facts(deck), [], seed)
     return p
 
@@ -70,7 +71,7 @@ def save_model(p: Policy, path: str | Path) -> None:
     Path(path).parent.mkdir(parents=True, exist_ok=True)
     chains = {r: sorted(list(c) for c in cs) for r, cs in p.known_chains.items()}
     np.savez(path, R=p.R, E=p.E, rels=np.array(p.rels), ents=np.array(p.ents),
-             meta=np.array(json.dumps({"mode": p.mode, "hops": p.hops, "dim": p.dim, "beam": p.beam, "chains": chains, "simple_paths": p.simple_paths})))
+             meta=np.array(json.dumps({"mode": p.mode, "hops": p.hops, "dim": p.dim, "beam": p.beam, "chains": chains, "simple_paths": p.simple_paths, "chain_prune": p.chain_prune})))
 
 
 def load_model(path: str | Path, deck: Deck) -> Policy:
@@ -85,6 +86,7 @@ def load_model(path: str | Path, deck: Deck) -> Policy:
     p.eidx = {e: i for i, e in enumerate(p.ents)}
     p.R, p.E = z["R"], z["E"]
     p.known_chains = {r: {tuple(c) for c in cs} for r, cs in meta.get("chains", {}).items()}
+    p.chain_prune = bool(meta.get("chain_prune", False))
     return p
 
 
@@ -103,6 +105,10 @@ def ask(question: str, deck: Deck, policy: Policy | None, pulled: list[int] | No
     pulled_str = [f"{s:08d}" for s in pulled]
 
     p = parse(question, deck.entities())
+    if p.ambiguous:
+        names = ", ".join((p.entity,) + p.ambiguous)
+        return Trace(question, "no_cards", None, p.relation, None, [], None, pulled_str,
+                     f"NO CARDS, NO ANSWER. AMBIGUOUS: the question names {names}. Ask about one entity at a time.", None)
     if not p.ok:
         return Trace(question, "no_cards", p.entity, p.relation, None, [], None, pulled_str,
                      narrate_no_cards(p.entity, p.relation), None)

@@ -55,6 +55,10 @@ class Policy(Ranker):
         # pre-registered evaluation (the walker as first evaluated) and ON for the product walker;
         # the evaluation with it ON is reported as an ablation (results.md).
         self.simple_paths = simple_paths
+        # chain_prune=True (product walker only): at each beam step, drop candidates whose relation
+        # chain so far is not a prefix of any chain that explained the asked relation in training,
+        # so a walk that cannot end in a known path shape jams where it stops, instead of wandering.
+        self.chain_prune = False
         self.name = f"policy_{mode}" + ("_simple" if simple_paths else "")
         self.history: list[dict] = []
         # query relation -> set of relation chains that reached the gold answer during training.
@@ -263,6 +267,9 @@ class Policy(Ranker):
         """True if this relation chain explained `relation` at least once during training."""
         return tuple(chain) in self.known_chains.get(relation, set())
 
+    def chain_prefix_known(self, relation: str, chain: tuple[str, ...]) -> bool:
+        return any(c[: len(chain)] == tuple(chain) for c in self.known_chains.get(relation, set()))
+
     # ---- decoding ----------------------------------------------------------------------
     def beam_search(self, s: str, rq: str, masked: set | None = None) -> list[tuple[str, float, list[Fact], list[float]]]:
         """Returns (entity, best log-prob, path, step probs) for every entity reached, best first."""
@@ -283,7 +290,10 @@ class Policy(Ranker):
                     if a is None:
                         cand.append((lp + math.log(p[k] + 1e-12), e, hist, path, probs + [float(p[k])]))
                     else:
-                        cand.append((lp + math.log(p[k] + 1e-12), a.object, hist + [self.ridx[a.relation]], path + [a], probs + [float(p[k])]))
+                        new_path = path + [a]
+                        if self.chain_prune and not self.chain_prefix_known(rq, tuple(f.relation for f in new_path)):
+                            continue
+                        cand.append((lp + math.log(p[k] + 1e-12), a.object, hist + [self.ridx[a.relation]], new_path, probs + [float(p[k])]))
             cand.sort(key=lambda x: -x[0])
             beams = cand[: self.beam]
         best: dict[str, tuple[float, list[Fact], list[float]]] = {}

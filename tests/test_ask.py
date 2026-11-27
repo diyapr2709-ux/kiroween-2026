@@ -163,3 +163,22 @@ def test_chains_survive_save_load(tmp_path, deck, policy) -> None:
     save_model(policy, p)
     again = load_model(p, deck)
     assert again.known_chains == policy.known_chains
+
+
+def test_two_entities_in_one_question_is_reported_as_ambiguous(deck, policy) -> None:
+    t = ask("Did Herman Hollerith work at the Census Bureau?", deck, policy)
+    assert t.status == "no_cards" and "AMBIGUOUS" in t.narration
+    assert "HERMAN HOLLERITH" in t.narration and "US CENSUS BUREAU" in t.narration
+    # a longer entity containing a shorter one is NOT ambiguous
+    p = parse("What did IBM 701 use?", deck.entities())
+    assert p.entity == "IBM 701" and p.ambiguous == ()
+
+
+def test_product_walker_jams_early_instead_of_wandering(deck) -> None:
+    pol = train_full(deck, mode="sl", seed=0, epochs=15)
+    assert pol.chain_prune and pol.simple_paths
+    t = ask("Who founded Ferranti?", deck, pol)
+    assert t.status in ("jam", "no_cards")
+    # every card shown lies on a prefix of a chain that explained FOUNDED BY in training
+    chain = tuple(c["relation"] for c in t.path)
+    assert not chain or pol.chain_prefix_known("FOUNDED BY", chain)

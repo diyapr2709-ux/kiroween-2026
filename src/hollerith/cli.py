@@ -83,6 +83,11 @@ def cmd_neighbours(args: argparse.Namespace) -> int:
 def cmd_split(args: argparse.Namespace) -> int:
     from .split import make_folds, write_folds
     deck = Deck.load(args.deck)
+    from .split import testable_facts as _tf
+    n_facts = len(_tf(deck)) if args.universe == "testable" else len(deck.facts()) // 2
+    if not 2 <= args.folds <= max(2, n_facts):
+        print(f"error: --folds must be between 2 and {n_facts} (one fact per fold at most)", file=sys.stderr)
+        return 1
     folds = make_folds(deck, k=args.folds, seed=args.split_seed, hops=args.hops, universe=args.universe)
     meta = write_folds(folds, args.out, deck, args.split_seed, args.hops, args.universe)
     print(f"universe={meta['universe']} ({meta['facts_testable']}/{meta['facts_total']} facts) "
@@ -103,7 +108,7 @@ def cmd_eval(args: argparse.Namespace) -> int:
             systems[name] = Policy(mode=name.split("_")[1], hops=args.hops, epochs=args.epochs, verbose=args.verbose,
                                    simple_paths=name.endswith("_simple"))
         else:
-            print(f"error: unknown system {name!r}; known: {sorted(BASELINES) + ['policy_rl', 'policy_sl']}", file=sys.stderr)
+            print(f"error: unknown system {name!r}; known: {sorted(BASELINES) + ['policy_rl', 'policy_sl', 'policy_rl_simple', 'policy_sl_simple']}", file=sys.stderr)
             return 1
     seeds = [int(s) for s in args.seeds.split(",")]
     summary = run(args.deck, systems, args.out, seeds, args.folds, args.split_seed, args.hops, args.universe)
@@ -115,6 +120,9 @@ def cmd_eval(args: argparse.Namespace) -> int:
 def cmd_train(args: argparse.Namespace) -> int:
     from .trace import save_model, train_full
     deck = Deck.load(args.deck)
+    if len(deck) == 0:
+        print("error: the deck is empty; nothing to train on", file=sys.stderr)
+        return 1
     p = train_full(deck, mode=args.mode, seed=args.seed, epochs=args.epochs, hops=args.hops)
     save_model(p, args.out)
     print(f"trained policy_{args.mode} on {len(deck)} cards ({args.epochs} epochs, seed {args.seed}) -> {args.out}")
@@ -122,16 +130,31 @@ def cmd_train(args: argparse.Namespace) -> int:
 
 
 def cmd_ask(args: argparse.Namespace) -> int:
-    from .trace import ask, load_model
+    from .trace import ask, load_model, save_model, train_full
     deck = Deck.load(args.deck)
-    policy = load_model(args.model, deck) if Path(args.model).exists() else None
-    pulled = [int(x) for x in args.pull.split(",") if x] if args.pull else []
+    if Path(args.model).exists():
+        policy = load_model(args.model, deck)
+    else:
+        policy = train_full(deck)  # ~2 s; a missing model must never masquerade as "no cards"
+        save_model(policy, args.model)
+        print(f"trained walker (first run) -> {args.model}", file=sys.stderr)
+    pulled: list[int] = []
+    seqs = {int(c.text[72:80]) for c in deck.cards}
+    for x in [x.strip() for x in args.pull.split(",") if x.strip()] if args.pull else []:
+        if not x.isdigit():
+            print(f"error: --pull expects card sequence numbers, got {x!r}", file=sys.stderr)
+            return 1
+        if int(x) not in seqs:
+            print(f"error: no card {int(x):08d} in the deck", file=sys.stderr)
+            return 1
+        pulled.append(int(x))
     t = ask(args.question, deck, policy, pulled=pulled)
     if args.json:
         print(t.to_json())
     else:
         print(f"Q: {t.question}")
-        print(f"   parsed: {t.entity} / {t.relation}   status: {t.status}" + (f"   confidence: {t.confidence:.2f}" if t.confidence is not None else ""))
+        print(f"   parsed: {t.entity} / {t.relation}   status: {t.status}" + (f"   confidence: {t.confidence:.2f}" if t.confidence is not None else "")
+              + (f"   pulled: {', '.join(t.pulled)}" if t.pulled else ""))
         for c in t.path:
             print(f"   {c['line']}")
         print(t.narration)

@@ -64,10 +64,11 @@ class Parse:
     entity: str | None
     relation: str | None
     matched_text: str | None
+    ambiguous: tuple[str, ...] = ()  # other entities also named in the question
 
     @property
     def ok(self) -> bool:
-        return self.entity is not None and self.relation is not None
+        return self.entity is not None and self.relation is not None and not self.ambiguous
 
 
 def _normalise(q: str) -> str:
@@ -76,18 +77,30 @@ def _normalise(q: str) -> str:
     return re.sub(r"\s+", " ", q).strip()
 
 
-def find_entity(question: str, entities: set[str]) -> tuple[str | None, str | None]:
-    """Longest entity (or alias) mentioned in the question, by word boundaries."""
+def find_entities(question: str, entities: set[str]) -> list[tuple[str, str, int, int]]:
+    """Every (canonical, matched text, start, end) mention, longest first, non-overlapping."""
     q = " " + _normalise(question) + " "
-    best: tuple[str | None, str | None] = (None, None)
-    best_len = 0
+    hits: list[tuple[str, str, int, int]] = []
     for text, canon in list(ALIASES.items()) + [(e, e) for e in entities]:
         if canon not in entities:
             continue
-        pat = r"(?<![A-Z0-9])" + re.escape(text) + r"(?![A-Z0-9])"
-        if re.search(pat, q) and len(text) > best_len:
-            best, best_len = (canon, text), len(text)
-    return best
+        for m in re.finditer(r"(?<![A-Z0-9])" + re.escape(text) + r"(?![A-Z0-9])", q):
+            hits.append((canon, text, m.start(), m.end()))
+    hits.sort(key=lambda h: (-(h[3] - h[2]), h[2]))
+    taken: list[tuple[int, int]] = []
+    out = []
+    for canon, text, a, b in hits:
+        if any(not (b <= s or a >= e) for s, e in taken):
+            continue  # overlaps a longer mention ("IBM" inside "IBM 701")
+        taken.append((a, b))
+        out.append((canon, text, a, b))
+    return out
+
+
+def find_entity(question: str, entities: set[str]) -> tuple[str | None, str | None]:
+    """Longest entity (or alias) mentioned in the question, by word boundaries."""
+    hits = find_entities(question, entities)
+    return (hits[0][0], hits[0][1]) if hits else (None, None)
 
 
 def find_relation(question: str) -> str | None:
@@ -101,8 +114,10 @@ def find_relation(question: str) -> str | None:
 def parse(question: str, entities: set[str]) -> Parse:
     if not question or not question.strip():
         return Parse(question, None, None, None)
-    entity, text = find_entity(question, entities)
+    hits = find_entities(question, entities)
+    entity, text = (hits[0][0], hits[0][1]) if hits else (None, None)
+    others = tuple(dict.fromkeys(h[0] for h in hits[1:] if h[0] != entity))
     rel = find_relation(question)
     if rel is not None and rel not in INVERSE:  # defensive: pattern table must stay on-vocabulary
         rel = None
-    return Parse(question, entity, rel, text)
+    return Parse(question, entity, rel, text, others)
