@@ -172,4 +172,9 @@ RL v1 (3 seeds, 13 min): policy_rl 0.072 ± 0.002 — same as SL; RL vs SL paire
 ### 2026-11-26 21:00 — Challenger #1 report → 1 blocker + 3 majors fixed in 0.5 h; verdict: Kiro's absence is the risk
 [challenger-1.md](challenger-1.md). Fixed: `--pull abc` traceback; **false `NO CARDS` on a fresh clone with no model** (now auto-trains on first run and says so); Ferranti 4-hop wander (product walker prunes beams to known chain prefixes → jams at 1 card); silent ambiguity (≥2 entities → AMBIGUOUS); `--folds` bounds; empty-deck train; known-systems list; pytest helper collection. **227 passed, 1 skipped.** Product numbers re-measured: recovered 35 %, jam 15 %, grounded-but-wrong 34 % (unchanged — shape pruning does not fix wrong endpoints), no cards 17 %; faithfulness 662/662. RL reachable-only + SL warm start: not adopted for the pre-registered eval (post-hoc); optional disclosed variant if hours remain. Challenger's bottom line adopted as the message to Diya: nothing outranks Kiro visibly owning `.kiro/`, the MCP server and the web reader.
 
-**Hours used:** ~5.5 h of 12. **Hours left:** ~6.5.
+### 2026-11-26 21:20 — README drafted; fresh-clone gate re-run at `b90f10c`
+README: pitch ("an AI that shows its receipts"), 3-command quickstart, honest results table + headline, Limitations, "How this was built" (matches authorship.md, Kiro section marked *in progress*). Ledger updated for every Loop 2/3 file.
+**Fresh-clone gate** (`git clone` → `uv sync` with API-key env vars unset → `uv run pytest -q` → the three README commands → `hollerith eval` SL+baselines): 227 passed; first `ask` auto-trains and answers; `--pull 2` reroutes via `[00000050]` narrated as inferred; Ferranti jams; eval reproduces results.md exactly (0.073 ± 0.007 / 0.035 / 0.017) in 12 s. No network, no key.
+RL re-run (incl. `policy_rl_simple` ablation) still running in the background (~23 min of RL fits).
+
+**Hours used:** ~5.75 h of 12. **Hours left:** ~6.25.
