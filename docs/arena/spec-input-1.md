@@ -72,6 +72,8 @@ Keep the chat transcript of the tool calls — it goes into the Kiro write-up an
 - Both hooks fire on their triggers.
 - `uv run python -m hollerith.mcp_server` starts and answers `query_deck("HERMAN HOLLERITH")`.
 - `.kiro/` is committed and not ignored; commits land in this order: spec → steering/hooks/mcp.json → server → cards.
+- Work on a branch and **open a pull request to `main`** titled `kiro: loop 1 — .kiro scaffold, MCP server, cards`
+  with a description listing which steering docs, hooks and tools you created and which cards you punched.
 
 ## (end of paste)
 
